@@ -191,7 +191,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                     <div className="scope-val-label">Coatings Potential</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: 'var(--lavD)' }}>{cr(sOpp) || '—'}</div>
+                    <div className="scope-val-num" style={{ color: 'var(--lavD)' }}>{isWon ? (cr(sWon) || '—') : (cr(sOpp) || '—')}</div>
                     <div className="scope-val-label">{isWon ? 'Products Won' : 'Protecton Opp.'}</div>
                   </div>
                   <div className="scope-val-box">
