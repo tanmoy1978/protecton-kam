@@ -8,7 +8,7 @@ export const fromDb = {
   contact: r => ({ id: r.id, companyId: r.company_id, name: r.name, designation: r.designation, phone: r.phone, email: r.email, role: r.role, influence: r.influence, lastContacted: r.last_contacted, notes: r.notes }),
   rc: r => ({ id: r.id, name: r.name, designation: r.designation, region: r.region, city: r.city, phone: r.phone, notes: r.notes }),
   project: r => ({ id: r.id, name: r.name, stage: r.stage, status: r.status, region: r.region, sector: r.sector, pathType: r.path_type, ownerId: r.owner_id, epcId: r.epc_id, fabricatorIds: r.fabricator_ids || [], kamOwnerId: r.kam_owner_id, supportingKaeIds: r.supporting_kae_ids || [], regionalColleagueIds: r.regional_colleague_ids || [], specStatus: r.spec_status, notes: r.notes, expectedOrderDate: r.expected_order_date }),
-  scope: r => ({ id: r.id, projectId: r.project_id, name: r.name || r.type, type: r.type, dataSource: r.data_source, scopeValue: r.qty, coatingsPotential: r.coatings_potential || 0, protectonOpportunity: r.protecton_opportunity || 0, qty: r.qty, qtyUnit: r.qty_unit, notes: r.notes, products: r.products || [], stage: r.stage, specStatus: r.spec_status }),
+  scope: r => ({ id: r.id, projectId: r.project_id, name: r.name || r.type, type: r.type, dataSource: r.data_source, scopeValue: r.qty, coatingsPotential: r.coatings_potential || 0, protectonOpportunity: r.protecton_opportunity || 0, qty: r.qty, qtyUnit: r.qty_unit, notes: r.notes, products: r.products || [] }),
   activity: r => ({ id: r.id, projectId: r.project_id, contactId: r.contact_id, userId: r.user_id, type: r.type, date: r.date, note: r.note, rcIds: r.rc_ids || [] }),
   scopeBuyer: r => ({ id: r.id, scopeId: r.scope_id, companyId: r.company_id, subletById: r.sublet_by_id, pos: r.pos || [] }),
 }
