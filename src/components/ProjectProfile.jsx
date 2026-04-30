@@ -6,6 +6,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
   const { projects, scopes, activities, contacts, team, companies, regionalColleagues, scopeBuyers } = data
   const [tab, setTab] = useState('scopes')
   const [modal, setModal] = useState(null)
+  const [editProject, setEditProject] = useState(null)
 
   const p = projects.find(x => x.id === projectId)
   if (!p) return <div><span className="back-link" onClick={onBack}>← Back</span><div>Project not found.</div></div>
@@ -113,7 +114,12 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {canEdit && <button className="btn btn-outline" onClick={() => {}}>Edit</button>}
+          {canEdit && <button className="btn btn-outline" onClick={() => setEditProject({
+            id: p.id, name: p.name, stage: p.stage, status: p.status, region: p.region,
+            sector: p.sector, pathType: p.pathType, ownerId: p.ownerId || '', epcId: p.epcId || '',
+            kamOwnerId: p.kamOwnerId || '', specStatus: p.specStatus || '', notes: p.notes || '',
+            expectedOrderDate: p.expectedOrderDate || ''
+          })}>Edit</button>}
           <button className="btn btn-primary" onClick={openActivityModal}>+ Log Activity</button>
         </div>
       </div>
@@ -427,5 +433,82 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         </Modal>
       )}
     </div>
+
+      {/* Project Edit Modal */}
+      {editProject && (
+        <Modal onClose={() => setEditProject(null)}>
+          <div className="modal-title">Edit Project</div>
+          <div className="field-wrap"><div className="field-label">Project Name</div><input className="inp" value={editProject.name} onChange={e => setEditProject(m => ({ ...m, name: e.target.value }))} /></div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Stage</div>
+              <select className="inp" value={editProject.stage} onChange={e => setEditProject(m => ({ ...m, stage: e.target.value }))}>
+                {STAGES.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Spec Status</div>
+              <select className="inp" value={editProject.specStatus} onChange={e => setEditProject(m => ({ ...m, specStatus: e.target.value }))}>
+                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Region</div>
+              <select className="inp" value={editProject.region} onChange={e => setEditProject(m => ({ ...m, region: e.target.value }))}>
+                <option value="">Select…</option>
+                {['West','South','North','East'].map(r => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Sector</div>
+              <select className="inp" value={editProject.sector} onChange={e => setEditProject(m => ({ ...m, sector: e.target.value }))}>
+                <option value="">Select…</option>
+                {['Oil & Gas','Power','Fertilizer','Steel','Water & Wastewater','Data Centers','Infrastructure','Petrochemical','Refinery','Other'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Project Owner</div>
+              <select className="inp" value={editProject.ownerId} onChange={e => setEditProject(m => ({ ...m, ownerId: e.target.value }))}>
+                <option value="">Select…</option>
+                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">EPC</div>
+              <select className="inp" value={editProject.epcId} onChange={e => setEditProject(m => ({ ...m, epcId: e.target.value }))}>
+                <option value="">Select…</option>
+                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">KAM Owner</div>
+              <select className="inp" value={editProject.kamOwnerId} onChange={e => setEditProject(m => ({ ...m, kamOwnerId: e.target.value }))}>
+                <option value="">Select…</option>
+                {team.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Path Type</div>
+              <select className="inp" value={editProject.pathType} onChange={e => setEditProject(m => ({ ...m, pathType: e.target.value }))}>
+                <option value="">Select…</option>
+                <option>Proactive</option><option>Reactive</option>
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Status</div>
+              <select className="inp" value={editProject.status} onChange={e => setEditProject(m => ({ ...m, status: e.target.value }))}>
+                {['Active','On Hold','Cancelled','Completed'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Expected Order Date</div>
+              <input className="inp" type="date" value={editProject.expectedOrderDate || ''} onChange={e => setEditProject(m => ({ ...m, expectedOrderDate: e.target.value }))} />
+            </div>
+          </div>
+          <div className="field-wrap"><div className="field-label">Notes</div><textarea className="inp" rows={3} value={editProject.notes} onChange={e => setEditProject(m => ({ ...m, notes: e.target.value }))} /></div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={async () => { await ops.saveProject(editProject); setEditProject(null) }}>Save</button>
+            <button className="btn btn-outline" onClick={() => setEditProject(null)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
   )
 }
