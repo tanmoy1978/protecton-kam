@@ -6,7 +6,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
   const { projects, scopes, activities, contacts, team, companies, regionalColleagues, scopeBuyers } = data
   const [tab, setTab] = useState('scopes')
   const [modal, setModal] = useState(null)
-  const [editProject, setEditProject] = useState(null)
 
   const p = projects.find(x => x.id === projectId)
   if (!p) return <div><span className="back-link" onClick={onBack}>← Back</span><div>Project not found.</div></div>
@@ -23,11 +22,19 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
   const companyName = id => companies.find(c => c.id === id)?.name || '—'
   const userName = id => team.find(u => u.id === id)?.name || '—'
 
-  // ── Scope Modal ──────────────────────────────────────────────
+  const openEditProject = () => setModal({
+    _type: 'editproject',
+    id: p.id, name: p.name, stage: p.stage, status: p.status || 'Active',
+    region: p.region || '', sector: p.sector || '', pathType: p.pathType || '',
+    ownerId: p.ownerId || '', epcId: p.epcId || '', kamOwnerId: p.kamOwnerId || '',
+    specStatus: p.specStatus || 'Not Specified', notes: p.notes || '',
+    expectedOrderDate: p.expectedOrderDate || ''
+  })
+
   const openScopeModal = (sc = null) => setModal({
     _type: 'scope',
     id: sc?.id || null,
-    name: sc?.name || '',
+    name: sc?.name || sc?.type || '',
     type: sc?.type || '',
     dataSource: sc?.dataSource || '',
     scopeValue: sc?.scopeValue || '',
@@ -35,19 +42,24 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     protectonOpportunity: sc?.protectonOpportunity || '',
     qty: sc?.qty || '',
     qtyUnit: sc?.qtyUnit || '',
-    stage: sc?.stage || p.stage,
-    specStatus: sc?.specStatus || p.specStatus || '',
     notes: sc?.notes || '',
     products: sc?.products || [],
   })
 
   const saveScope = async () => {
     if (!modal.name.trim()) return alert('Scope name required')
-    await ops.saveScope({ ...modal, id: modal.id || uid(), projectId, coatingsPotential: parseFloat(modal.coatingsPotential) || 0, protectonOpportunity: parseFloat(modal.protectonOpportunity) || 0, scopeValue: parseFloat(modal.scopeValue) || 0, qty: parseFloat(modal.qty) || null })
+    await ops.saveScope({
+      ...modal,
+      id: modal.id || uid(),
+      projectId,
+      coatingsPotential: parseFloat(modal.coatingsPotential) || 0,
+      protectonOpportunity: parseFloat(modal.protectonOpportunity) || 0,
+      scopeValue: parseFloat(modal.scopeValue) || 0,
+      qty: parseFloat(modal.qty) || null
+    })
     setModal(null)
   }
 
-  // ── Product Modal ────────────────────────────────────────────
   const openProductModal = (scopeId, pr = null) => setModal({
     _type: 'product', scopeId,
     id: pr?.id || null, name: pr?.name || '', valueL: pr?.valueL || '', status: pr?.status || 'Proposed'
@@ -63,7 +75,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     setModal(null)
   }
 
-  // ── Buyer Modal ──────────────────────────────────────────────
   const openBuyerModal = (scopeId, b = null) => setModal({
     _type: 'buyer', scopeId,
     id: b?.id || null, companyId: b?.companyId || '', subletById: b?.subletById || '', pos: b?.pos || []
@@ -75,13 +86,12 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     setModal(null)
   }
 
-  const addPORow = () => setModal(m => ({ ...m, pos: [...m.pos, { id: uid(), number: '', date: '', value: '', notes: '' }] }))
+  const addPORow = () => setModal(m => ({ ...m, pos: [...(m.pos||[]), { id: uid(), number: '', date: '', value: '', notes: '' }] }))
   const updatePO = (idx, field, val) => setModal(m => ({ ...m, pos: m.pos.map((po, i) => i === idx ? { ...po, [field]: val } : po) }))
   const removePO = (idx) => setModal(m => ({ ...m, pos: m.pos.filter((_, i) => i !== idx) }))
 
-  // ── Activity Modal ───────────────────────────────────────────
   const openActivityModal = () => setModal({
-    _type: 'activity', id: null,
+    _type: 'activity',
     userId: currentUser.id, contactId: '', type: 'Call',
     date: new Date().toISOString().slice(0, 10), note: '', rcIds: []
   })
@@ -92,17 +102,10 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     setModal(null)
   }
 
-  const TABS = [
-    { id: 'scopes', label: 'Scopes and Values' },
-    { id: 'activity', label: 'Activity Log' },
-    { id: 'details', label: 'Details' },
-  ]
-
   return (
     <div>
       <span className="back-link" onClick={onBack}>← Projects</span>
 
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{p.name}</h2>
@@ -114,17 +117,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          {canEdit && <button className="btn btn-outline" onClick={() => setEditProject({
-            id: p.id, name: p.name, stage: p.stage, status: p.status, region: p.region,
-            sector: p.sector, pathType: p.pathType, ownerId: p.ownerId || '', epcId: p.epcId || '',
-            kamOwnerId: p.kamOwnerId || '', specStatus: p.specStatus || '', notes: p.notes || '',
-            expectedOrderDate: p.expectedOrderDate || ''
-          })}>Edit</button>}
+          {canEdit && <button className="btn btn-outline" onClick={openEditProject}>Edit</button>}
           <button className="btn btn-primary" onClick={openActivityModal}>+ Log Activity</button>
         </div>
       </div>
 
-      {/* Stat cards */}
       <div className="grid4" style={{ marginBottom: 24 }}>
         <div className="stat-card" style={{ background: 'var(--straw)' }}>
           <div className="stat-val" style={{ color: 'var(--strawD)' }}>{cr(pot) || '—'}</div>
@@ -147,17 +144,17 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="tabs">
-        {TABS.map(t => <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>)}
+        {[{id:'scopes',label:'Scopes and Values'},{id:'activity',label:'Activity Log'},{id:'details',label:'Details'}].map(t =>
+          <button key={t.id} className={`tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>
+        )}
       </div>
 
-      {/* Scopes Tab */}
       {tab === 'scopes' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
-              {pScopes.length} scope{pScopes.length !== 1 ? 's' : ''} — Potential: <b>{cr(pot)}</b>
+              {pScopes.length} scope{pScopes.length !== 1 ? 's' : ''} — Potential: <b>{cr(pot) || '—'}</b>
               {opp > 0 && <> — Opportunity: <b style={{ color: 'var(--lavD)' }}>{cr(opp)}</b></>}
               {isWon && won > 0 && <> — Won: <b style={{ color: 'var(--sageD)' }}>{cr(won)}</b> — Capture: <b>{captureRate(opp || pot, won)}%</b></>}
               {poTotal > 0 && <> — POs: <b style={{ color: '#2D7A4F' }}>{cr(poTotal)}</b></>}
@@ -179,7 +176,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
               <div key={sc.id} className="scope-card">
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>{sc.name}</div>
+                    <div style={{ fontWeight: 700, fontSize: 13 }}>{sc.name || sc.type}</div>
                     <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{sc.type}{sc.dataSource ? ' · ' + sc.dataSource : ''}</div>
                   </div>
                   {canEdit && <div style={{ display: 'flex', gap: 4 }}>
@@ -207,23 +204,19 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                   </div>
                 </div>
 
-                {/* Products */}
                 <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)', marginBottom: 6 }}>PRODUCTS</div>
                 {(sc.products || []).map(pr => (
                   <div key={pr.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 10px', background: '#fff', borderRadius: 8, border: '1px solid var(--border)', marginBottom: 4, gap: 8 }}>
                     <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>{pr.name}</span>
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--lavD)' }}>{cr(pr.valueL)}</span>
                     <span className="tag" style={{ background: pr.status === 'Specified' ? 'var(--sage)' : pr.status === 'Lost' ? 'var(--rose)' : 'var(--straw)', color: pr.status === 'Specified' ? 'var(--sageD)' : pr.status === 'Lost' ? 'var(--roseD)' : 'var(--strawD)', fontSize: 10 }}>{pr.status}</span>
-                    {canEdit && <>
-                      <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openProductModal(sc.id, pr)}>edit</button>
-                      {canDelete && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => { if (confirm('Remove?')) { const updated = { ...sc, products: sc.products.filter(x => x.id !== pr.id) }; ops.saveScope(updated) } }}>del</button>}
-                    </>}
+                    {canEdit && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openProductModal(sc.id, pr)}>edit</button>}
+                    {canDelete && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => { if (confirm('Remove?')) ops.saveScope({ ...sc, products: sc.products.filter(x => x.id !== pr.id) }) }}>del</button>}
                   </div>
                 ))}
                 {!(sc.products || []).length && <div style={{ fontSize: 12, color: '#A0AEC0', padding: '4px 0' }}>No products yet.</div>}
                 {canEdit && <button className="btn-sm" style={{ background: 'var(--lav)', color: 'var(--lavD)', marginTop: 6 }} onClick={() => openProductModal(sc.id)}>+ Add Product</button>}
 
-                {/* Buyers & POs */}
                 <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)' }}>BUYERS & PURCHASE ORDERS</div>
@@ -241,13 +234,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span style={{ fontSize: 12, fontWeight: 700, color: '#2D7A4F' }}>{cr(bPOTotal) || '—'} PO</span>
-                            {canEdit && <>
-                              <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openBuyerModal(sc.id, b)}>edit</button>
-                              {canDelete && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => { if (confirm('Delete buyer?')) ops.deleteScopeBuyer(b.id) }}>del</button>}
-                            </>}
+                            {canEdit && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openBuyerModal(sc.id, b)}>edit</button>}
+                            {canDelete && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => { if (confirm('Delete buyer?')) ops.deleteScopeBuyer(b.id) }}>del</button>}
                           </div>
                         </div>
-                        {(b.pos || []).length > 0 && (
+                        {(b.pos || []).length > 0 ? (
                           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                             <thead><tr style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>
                               <th style={{ textAlign: 'left', padding: '3px 6px', fontWeight: 600 }}>PO Number</th>
@@ -266,8 +257,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                               ))}
                             </tbody>
                           </table>
-                        )}
-                        {!(b.pos || []).length && <div style={{ fontSize: 11, color: '#A0AEC0' }}>No POs logged yet.</div>}
+                        ) : <div style={{ fontSize: 11, color: '#A0AEC0' }}>No POs logged yet.</div>}
                       </div>
                     )
                   })}
@@ -278,7 +268,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         </div>
       )}
 
-      {/* Activity Tab */}
       {tab === 'activity' && (
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
@@ -311,7 +300,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         </div>
       )}
 
-      {/* Details Tab */}
       {tab === 'details' && (
         <div className="card card-pad">
           <div className="grid2">
@@ -326,11 +314,94 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         </div>
       )}
 
-      {/* Modals */}
+      {/* ── MODALS ── */}
+
+      {modal?._type === 'editproject' && (
+        <Modal onClose={() => setModal(null)}>
+          <div className="modal-title">Edit Project</div>
+          <div className="field-wrap"><div className="field-label">Project Name</div>
+            <input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} />
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Stage</div>
+              <select className="inp" value={modal.stage} onChange={e => setModal(m => ({ ...m, stage: e.target.value }))}>
+                {STAGES.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Spec Status</div>
+              <select className="inp" value={modal.specStatus} onChange={e => setModal(m => ({ ...m, specStatus: e.target.value }))}>
+                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Region</div>
+              <select className="inp" value={modal.region} onChange={e => setModal(m => ({ ...m, region: e.target.value }))}>
+                <option value="">Select…</option>
+                {['West','South','North','East'].map(r => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Sector</div>
+              <select className="inp" value={modal.sector} onChange={e => setModal(m => ({ ...m, sector: e.target.value }))}>
+                <option value="">Select…</option>
+                {['Oil & Gas','Power','Fertilizer','Steel','Water & Wastewater','Data Centers','Infrastructure','Petrochemical','Refinery','Other'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Project Owner</div>
+              <select className="inp" value={modal.ownerId} onChange={e => setModal(m => ({ ...m, ownerId: e.target.value }))}>
+                <option value="">Select…</option>
+                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">EPC</div>
+              <select className="inp" value={modal.epcId} onChange={e => setModal(m => ({ ...m, epcId: e.target.value }))}>
+                <option value="">Select…</option>
+                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">KAM Owner</div>
+              <select className="inp" value={modal.kamOwnerId} onChange={e => setModal(m => ({ ...m, kamOwnerId: e.target.value }))}>
+                <option value="">Select…</option>
+                {team.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Path Type</div>
+              <select className="inp" value={modal.pathType} onChange={e => setModal(m => ({ ...m, pathType: e.target.value }))}>
+                <option value="">Select…</option>
+                <option>Proactive</option><option>Reactive</option>
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Status</div>
+              <select className="inp" value={modal.status} onChange={e => setModal(m => ({ ...m, status: e.target.value }))}>
+                {['Active','On Hold','Cancelled','Completed'].map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Expected Order Date</div>
+              <input className="inp" type="date" value={modal.expectedOrderDate || ''} onChange={e => setModal(m => ({ ...m, expectedOrderDate: e.target.value }))} />
+            </div>
+          </div>
+          <div className="field-wrap"><div className="field-label">Notes</div>
+            <textarea className="inp" rows={3} value={modal.notes} onChange={e => setModal(m => ({ ...m, notes: e.target.value }))} />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={async () => { await ops.saveProject(modal); setModal(null) }}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
+
       {modal?._type === 'scope' && (
         <Modal onClose={() => setModal(null)}>
           <div className="modal-title">{modal.id ? 'Edit Scope' : 'Add Scope'}</div>
-          <div className="field-wrap"><div className="field-label">Scope Name</div><input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} /></div>
+          <div className="field-wrap"><div className="field-label">Scope Name</div>
+            <input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} />
+          </div>
           <div className="field-row">
             <div className="field-wrap"><div className="field-label">Type</div>
               <select className="inp" value={modal.type} onChange={e => setModal(m => ({ ...m, type: e.target.value, name: m.name || e.target.value }))}>
@@ -344,35 +415,53 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             </div>
           </div>
           <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Coatings Potential (L)</div><input className="inp" type="number" value={modal.coatingsPotential} onChange={e => setModal(m => ({ ...m, coatingsPotential: e.target.value }))} /></div>
-            <div className="field-wrap"><div className="field-label">Protecton Opportunity (L)</div><input className="inp" type="number" value={modal.protectonOpportunity} onChange={e => setModal(m => ({ ...m, protectonOpportunity: e.target.value }))} placeholder="Leave blank = auto from products" /></div>
+            <div className="field-wrap"><div className="field-label">Coatings Potential (L)</div>
+              <input className="inp" type="number" value={modal.coatingsPotential} onChange={e => setModal(m => ({ ...m, coatingsPotential: e.target.value }))} />
+            </div>
+            <div className="field-wrap"><div className="field-label">Protecton Opportunity (L)</div>
+              <input className="inp" type="number" value={modal.protectonOpportunity} onChange={e => setModal(m => ({ ...m, protectonOpportunity: e.target.value }))} placeholder="Leave blank = auto from products" />
+            </div>
           </div>
           <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Quantity</div><input className="inp" type="number" value={modal.qty} onChange={e => setModal(m => ({ ...m, qty: e.target.value }))} /></div>
+            <div className="field-wrap"><div className="field-label">Quantity</div>
+              <input className="inp" type="number" value={modal.qty} onChange={e => setModal(m => ({ ...m, qty: e.target.value }))} />
+            </div>
             <div className="field-wrap"><div className="field-label">Unit</div>
               <select className="inp" value={modal.qtyUnit} onChange={e => setModal(m => ({ ...m, qtyUnit: e.target.value }))}>
                 <option value="">Select…</option>{QTY_UNITS.map(u => <option key={u}>{u}</option>)}
               </select>
             </div>
           </div>
-          <div className="field-wrap"><div className="field-label">Notes</div><textarea className="inp" rows={2} value={modal.notes} onChange={e => setModal(m => ({ ...m, notes: e.target.value }))} /></div>
-          <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-primary" onClick={saveScope}>Save</button><button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button></div>
+          <div className="field-wrap"><div className="field-label">Notes</div>
+            <textarea className="inp" rows={2} value={modal.notes} onChange={e => setModal(m => ({ ...m, notes: e.target.value }))} />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={saveScope}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
+          </div>
         </Modal>
       )}
 
       {modal?._type === 'product' && (
         <Modal onClose={() => setModal(null)}>
           <div className="modal-title">{modal.id ? 'Edit Product' : 'Add Product'}</div>
-          <div className="field-wrap"><div className="field-label">Product Name</div><input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} /></div>
+          <div className="field-wrap"><div className="field-label">Product Name</div>
+            <input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} />
+          </div>
           <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Value (Lakhs)</div><input className="inp" type="number" value={modal.valueL} onChange={e => setModal(m => ({ ...m, valueL: e.target.value }))} /></div>
+            <div className="field-wrap"><div className="field-label">Value (Lakhs)</div>
+              <input className="inp" type="number" value={modal.valueL} onChange={e => setModal(m => ({ ...m, valueL: e.target.value }))} />
+            </div>
             <div className="field-wrap"><div className="field-label">Status</div>
               <select className="inp" value={modal.status} onChange={e => setModal(m => ({ ...m, status: e.target.value }))}>
                 {PROD_STATUS.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-primary" onClick={saveProduct}>Save</button><button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button></div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={saveProduct}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
+          </div>
         </Modal>
       )}
 
@@ -397,6 +486,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
               <div style={{ fontSize: 12, fontWeight: 700 }}>PURCHASE ORDERS</div>
               <button className="btn-sm" style={{ background: 'var(--blue)', color: 'var(--blueD)' }} onClick={addPORow}>+ Add PO</button>
             </div>
+            {!(modal.pos || []).length && <div style={{ fontSize: 12, color: '#A0AEC0' }}>No POs yet. Click + Add PO to log one.</div>}
             {(modal.pos || []).map((po, i) => (
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 130px 100px 1fr auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                 <input className="inp" placeholder="PO Number" value={po.number} onChange={e => updatePO(i, 'number', e.target.value)} style={{ fontSize: 12 }} />
@@ -406,9 +496,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                 <button className="btn-ghost" style={{ color: 'var(--roseD)' }} onClick={() => removePO(i)}>✕</button>
               </div>
             ))}
-            {!(modal.pos || []).length && <div style={{ fontSize: 12, color: '#A0AEC0' }}>No POs yet. Click + Add PO to log one.</div>}
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}><button className="btn btn-primary" onClick={saveBuyer}>Save</button><button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button></div>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button className="btn btn-primary" onClick={saveBuyer}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
+          </div>
         </Modal>
       )}
 
@@ -421,91 +513,21 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                 {ACT_TYPES.map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
-            <div className="field-wrap"><div className="field-label">Date</div><input className="inp" type="date" value={modal.date} onChange={e => setModal(m => ({ ...m, date: e.target.value }))} /></div>
+            <div className="field-wrap"><div className="field-label">Date</div>
+              <input className="inp" type="date" value={modal.date} onChange={e => setModal(m => ({ ...m, date: e.target.value }))} />
+            </div>
           </div>
           <div className="field-wrap"><div className="field-label">Contact</div>
             <select className="inp" value={modal.contactId} onChange={e => setModal(m => ({ ...m, contactId: e.target.value }))}>
               <option value="">Select…</option>{contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-          <div className="field-wrap"><div className="field-label">Note</div><textarea className="inp" rows={3} value={modal.note} onChange={e => setModal(m => ({ ...m, note: e.target.value }))} /></div>
-          <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-primary" onClick={saveActivity}>Save</button><button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button></div>
-        </Modal>
-      )}
-
-      {/* Project Edit Modal */}
-      {editProject && (
-        <Modal onClose={() => setEditProject(null)}>
-          <div className="modal-title">Edit Project</div>
-          <div className="field-wrap"><div className="field-label">Project Name</div><input className="inp" value={editProject.name} onChange={e => setEditProject(m => ({ ...m, name: e.target.value }))} /></div>
-          <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Stage</div>
-              <select className="inp" value={editProject.stage} onChange={e => setEditProject(m => ({ ...m, stage: e.target.value }))}>
-                {STAGES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">Spec Status</div>
-              <select className="inp" value={editProject.specStatus} onChange={e => setEditProject(m => ({ ...m, specStatus: e.target.value }))}>
-                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
+          <div className="field-wrap"><div className="field-label">Note</div>
+            <textarea className="inp" rows={3} value={modal.note} onChange={e => setModal(m => ({ ...m, note: e.target.value }))} />
           </div>
-          <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Region</div>
-              <select className="inp" value={editProject.region} onChange={e => setEditProject(m => ({ ...m, region: e.target.value }))}>
-                <option value="">Select…</option>
-                {['West','South','North','East'].map(r => <option key={r}>{r}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">Sector</div>
-              <select className="inp" value={editProject.sector} onChange={e => setEditProject(m => ({ ...m, sector: e.target.value }))}>
-                <option value="">Select…</option>
-                {['Oil & Gas','Power','Fertilizer','Steel','Water & Wastewater','Data Centers','Infrastructure','Petrochemical','Refinery','Other'].map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Project Owner</div>
-              <select className="inp" value={editProject.ownerId} onChange={e => setEditProject(m => ({ ...m, ownerId: e.target.value }))}>
-                <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">EPC</div>
-              <select className="inp" value={editProject.epcId} onChange={e => setEditProject(m => ({ ...m, epcId: e.target.value }))}>
-                <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="field-row">
-            <div className="field-wrap"><div className="field-label">KAM Owner</div>
-              <select className="inp" value={editProject.kamOwnerId} onChange={e => setEditProject(m => ({ ...m, kamOwnerId: e.target.value }))}>
-                <option value="">Select…</option>
-                {team.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">Path Type</div>
-              <select className="inp" value={editProject.pathType} onChange={e => setEditProject(m => ({ ...m, pathType: e.target.value }))}>
-                <option value="">Select…</option>
-                <option>Proactive</option><option>Reactive</option>
-              </select>
-            </div>
-          </div>
-          <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Status</div>
-              <select className="inp" value={editProject.status} onChange={e => setEditProject(m => ({ ...m, status: e.target.value }))}>
-                {['Active','On Hold','Cancelled','Completed'].map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">Expected Order Date</div>
-              <input className="inp" type="date" value={editProject.expectedOrderDate || ''} onChange={e => setEditProject(m => ({ ...m, expectedOrderDate: e.target.value }))} />
-            </div>
-          </div>
-          <div className="field-wrap"><div className="field-label">Notes</div><textarea className="inp" rows={3} value={editProject.notes} onChange={e => setEditProject(m => ({ ...m, notes: e.target.value }))} /></div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-primary" onClick={async () => { await ops.saveProject(editProject); setEditProject(null) }}>Save</button>
-            <button className="btn btn-outline" onClick={() => setEditProject(null)}>Cancel</button>
+            <button className="btn btn-primary" onClick={saveActivity}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
           </div>
         </Modal>
       )}
