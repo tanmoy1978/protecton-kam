@@ -432,7 +432,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           <div style={{ display: 'flex', gap: 8 }}><button className="btn btn-primary" onClick={saveActivity}>Save</button><button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button></div>
         </Modal>
       )}
-    </div>
 
       {/* Project Edit Modal */}
       {editProject && (
@@ -510,5 +509,6 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           </div>
         </Modal>
       )}
+    </div>
   )
 }
