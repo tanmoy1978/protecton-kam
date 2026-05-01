@@ -491,7 +491,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
               <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 130px 100px 1fr auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                 <input className="inp" placeholder="PO Number" value={po.number} onChange={e => updatePO(i, 'number', e.target.value)} style={{ fontSize: 12 }} />
                 <input className="inp" type="date" value={po.date} onChange={e => updatePO(i, 'date', e.target.value)} style={{ fontSize: 12 }} />
-                <input className="inp" type="number" placeholder="Value (L)" value={po.value} onChange={e => updatePO(i, 'value', e.target.value)} style={{ fontSize: 12 }} />
+                <input className="inp" type="number" placeholder="Value in Lakhs" value={po.value} onChange={e => updatePO(i, 'value', e.target.value)} style={{ fontSize: 12 }} />
                 <input className="inp" placeholder="Notes" value={po.notes} onChange={e => updatePO(i, 'notes', e.target.value)} style={{ fontSize: 12 }} />
                 <button className="btn-ghost" style={{ color: 'var(--roseD)' }} onClick={() => removePO(i)}>✕</button>
               </div>

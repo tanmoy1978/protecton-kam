@@ -67,10 +67,10 @@ export default function Funnel({ data, visibleProjects }) {
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Opportunity by Stage</div>
         <div className="card" style={{ overflow: 'hidden' }}>
           <table className="tbl">
-            <thead><tr><th>Stage</th><th>Projects</th><th>Protecton Opportunity</th><th>% of Total</th></tr></thead>
+            <thead><tr><th>Stage</th><th>Projects</th><th>Opportunity / Won Value</th><th>% of Coatings Potential</th></tr></thead>
             <tbody>
-              {Object.entries(stageGroups).map(([stage, { count, opp }]) => {
-                const pctOpp = totalOpp ? Math.round(opp / totalOpp * 100) : 0
+              {Object.entries(stageGroups).filter(([stage]) => stage !== 'Order Won').map(([stage, { count, opp }]) => {
+                const pctOpp = totalPot ? Math.round(opp / totalPot * 100) : 0
                 return (
                   <tr key={stage}>
                     <td><span className="badge" style={{ background: STAGE_COLORS[stage] || '#eee', color: STAGE_TEXT[stage] || '#666', fontSize: 10 }}>{stage}</span></td>
@@ -85,6 +85,19 @@ export default function Funnel({ data, visibleProjects }) {
                   </tr>
                 )
               })}
+              {wonProjects.length > 0 && (
+                <tr style={{ background: '#EAF7EE' }}>
+                  <td><span className="badge" style={{ background: STAGE_COLORS['Order Won'], color: STAGE_TEXT['Order Won'], fontSize: 10 }}>Order Won</span></td>
+                  <td style={{ fontWeight: 600 }}>{wonProjects.length}</td>
+                  <td style={{ fontWeight: 700, color: 'var(--sageD)' }}>{cr(totalWon) || '—'}</td>
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div className="prog-wrap" style={{ width: 80 }}><div className="prog-bar" style={{ width: (totalPot ? Math.round(totalWon / totalPot * 100) : 0) + '%', background: 'var(--sageD)' }} /></div>
+                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{totalPot ? Math.round(totalWon / totalPot * 100) : 0}%</span>
+                    </div>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

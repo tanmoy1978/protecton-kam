@@ -53,7 +53,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* Stats */}
-      <div className="grid4">
+      <div className="grid4" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length} <span style={{ fontSize: 14 }}>projects</span></div>
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Total Projects</div>
@@ -72,7 +72,12 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
         <div className="stat-card" style={{ background: 'var(--sage)' }}>
           <div className="stat-val" style={{ color: 'var(--sageD)' }}>{totalWon ? cr(totalWon) : '—'}</div>
           <div className="stat-label" style={{ color: 'var(--sageD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: 'var(--sageD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '% capture rate' : 'Protecton orders won'}</div>
+          <div className="stat-sub" style={{ color: 'var(--sageD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '% of opportunity' : 'Protecton orders won'}</div>
+        </div>
+        <div className="stat-card" style={{ background: 'var(--blue)' }}>
+          <div className="stat-val" style={{ color: 'var(--blueD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '%' : '—'}</div>
+          <div className="stat-label" style={{ color: 'var(--blueD)' }}>Capture Rate</div>
+          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>Orders Won ÷ Protecton Opp.</div>
         </div>
       </div>
 
