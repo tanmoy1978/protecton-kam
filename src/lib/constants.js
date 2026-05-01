@@ -69,7 +69,7 @@ export const scopeOpportunity = (s) => {
   return (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
 }
 export const scopeProtecton = (s) => (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
-export const scopePOTotal = (sid, scopeBuyers) => scopeBuyers.filter(b => b.scopeId === sid).reduce((x, b) => (b.pos || []).reduce((y, p) => y + (p.value || 0), 0) + x, 0)
+export const scopePOTotal = (sid, scopeBuyers) => scopeBuyers.filter(b => b.scopeId === sid).reduce((x, b) => (b.pos || []).reduce((y, p) => y + (parseFloat(p.value) || 0), 0) + x, 0)
 export const projectCoatingsPotential = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + (s.coatingsPotential || 0), 0)
 export const projectOpportunity = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + scopeOpportunity(s), 0)
 export const projectWonValue = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + scopeProtecton(s), 0)
