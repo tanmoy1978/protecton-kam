@@ -126,21 +126,22 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         <div className="stat-card" style={{ background: 'var(--straw)' }}>
           <div className="stat-val" style={{ color: 'var(--strawD)' }}>{cr(pot) || '—'}</div>
           <div className="stat-label" style={{ color: 'var(--strawD)' }}>Coatings Potential</div>
+          <div className="stat-sub" style={{ color: 'var(--strawD)' }}>Total market for coatings</div>
         </div>
         <div className="stat-card" style={{ background: 'var(--lav)' }}>
-          <div className="stat-val" style={{ color: 'var(--lavD)' }}>{isWon ? (cr(won) || '—') : (cr(opp) || '—')}</div>
-          <div className="stat-label" style={{ color: 'var(--lavD)' }}>{isWon ? 'Protecton Value' : 'Protecton Opportunity'}</div>
-          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>{isWon ? 'Sum of products won' : 'Addressable by Protecton'}</div>
+          <div className="stat-val" style={{ color: 'var(--lavD)' }}>{cr(opp) || '—'}</div>
+          <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opportunity</div>
+          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable by Protecton products</div>
         </div>
-        <div className="stat-card" style={{ background: isWon ? (cr_ >= 60 ? 'var(--sage)' : cr_ >= 30 ? 'var(--straw)' : 'var(--rose)') : 'var(--slate)' }}>
-          <div className="stat-val" style={{ color: isWon ? (cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : 'var(--roseD)') : 'var(--slateD)' }}>{isWon && won ? cr_ + '%' : '—'}</div>
-          <div className="stat-label" style={{ color: isWon ? 'inherit' : 'var(--slateD)' }}>Capture Rate</div>
-          <div className="stat-sub" style={{ color: isWon ? 'inherit' : 'var(--slateD)' }}>{isWon ? 'Won ÷ Protecton Opportunity' : 'Available when order is won'}</div>
+        <div className="stat-card" style={{ background: isWon ? 'var(--sage)' : 'var(--slate)' }}>
+          <div className="stat-val" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr(won) || '—') : '—'}</div>
+          <div className="stat-label" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>Orders Won</div>
+          <div className="stat-sub" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr_ + '% capture rate') : 'Available when order is won'}</div>
         </div>
-        <div className="stat-card" style={{ background: '#B8E6CC' }}>
-          <div className="stat-val" style={{ color: '#2D7A4F' }}>{cr(poTotal) || '—'}</div>
-          <div className="stat-label" style={{ color: '#2D7A4F' }}>POs Received</div>
-          <div className="stat-sub" style={{ color: '#2D7A4F' }}>{isWon && poTotal < won ? `${cr(won - poTotal)} pending` : 'Actual purchase orders'}</div>
+        <div className="stat-card" style={{ background: isWon ? '#B8E6CC' : 'var(--slate)' }}>
+          <div className="stat-val" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (cr(poTotal) || '—') : '—'}</div>
+          <div className="stat-label" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>POs Received</div>
+          <div className="stat-sub" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'Available when order is won'}</div>
         </div>
       </div>
 
@@ -187,20 +188,20 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
 
                 <div className="scope-values">
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: 'var(--blueD)' }}>{cr(sPot) || '—'}</div>
+                    <div className="scope-val-num" style={{ color: 'var(--strawD)' }}>{cr(sPot) || '—'}</div>
                     <div className="scope-val-label">Coatings Potential</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: 'var(--lavD)' }}>{isWon ? (cr(sWon) || '—') : (cr(sOpp) || '—')}</div>
-                    <div className="scope-val-label">{isWon ? 'Products Won' : 'Protecton Opp.'}</div>
+                    <div className="scope-val-num" style={{ color: 'var(--lavD)' }}>{cr(sOpp) || '—'}</div>
+                    <div className="scope-val-label">Protecton Opportunity</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: '#2D7A4F' }}>{cr(sPOTotal) || '—'}</div>
+                    <div className="scope-val-num" style={{ color: isWon ? 'var(--sageD)' : '#B0BEC5' }}>{isWon ? (cr(sWon) || '—') : '—'}</div>
+                    <div className="scope-val-label">Orders Won</div>
+                  </div>
+                  <div className="scope-val-box">
+                    <div className="scope-val-num" style={{ color: isWon ? '#2D7A4F' : '#B0BEC5' }}>{isWon ? (cr(sPOTotal) || '—') : '—'}</div>
                     <div className="scope-val-label">POs Received</div>
-                  </div>
-                  <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: isWon ? (sCr >= 60 ? 'var(--sageD)' : sCr >= 30 ? 'var(--strawD)' : 'var(--roseD)') : '#B0BEC5' }}>{isWon ? sCr + '%' : '—'}</div>
-                    <div className="scope-val-label">Capture Rate</div>
                   </div>
                 </div>
 

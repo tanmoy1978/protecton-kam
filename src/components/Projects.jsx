@@ -123,11 +123,8 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
               </div>
               <div style={{ display: 'flex', gap: 16, textAlign: 'right' }}>
                 {pot > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div></div>}
-                {p.stage === 'Order Won' ? (
-                  won > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div></div>
-                ) : (
-                  opp > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div></div>
-                )}
+                {opp > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div></div>}
+                {p.stage === 'Order Won' && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div></div>}
                 {p.stage === 'Order Won' && won > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div></div>}
               </div>
               {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4 }}>
