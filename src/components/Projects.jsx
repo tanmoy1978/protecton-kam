@@ -194,14 +194,14 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
               <div className="field-label">Project Owner</div>
               <select className="inp" value={modal.ownerId} onChange={e => setModal(m => ({ ...m, ownerId: e.target.value }))}>
                 <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {companies.filter(c => c.type === 'Project Owner').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="field-wrap">
               <div className="field-label">EPC Contractor</div>
               <select className="inp" value={modal.epcId} onChange={e => setModal(m => ({ ...m, epcId: e.target.value }))}>
                 <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {companies.filter(c => c.type === 'EPC Contractor').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
           </div>

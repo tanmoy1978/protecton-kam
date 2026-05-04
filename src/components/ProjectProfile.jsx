@@ -353,13 +353,13 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <div className="field-wrap"><div className="field-label">Project Owner</div>
               <select className="inp" value={modal.ownerId} onChange={e => setModal(m => ({ ...m, ownerId: e.target.value }))}>
                 <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {companies.filter(c => c.type === 'Project Owner').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
             <div className="field-wrap"><div className="field-label">EPC</div>
               <select className="inp" value={modal.epcId} onChange={e => setModal(m => ({ ...m, epcId: e.target.value }))}>
                 <option value="">Select…</option>
-                {companies.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                {companies.filter(c => c.type === 'EPC Contractor').map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
             </div>
           </div>
@@ -472,7 +472,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           <div className="field-wrap"><div className="field-label">Buyer Company</div>
             <select className="inp" value={modal.companyId} onChange={e => setModal(m => ({ ...m, companyId: e.target.value }))}>
               <option value="">Select buyer…</option>
-              {companies.sort((a,b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name} ({c.type || 'Company'})</option>)}
+              {companies.filter(c => ['EPC Contractor','Fabricator','Subcontractor'].includes(c.type)).sort((a,b) => a.name.localeCompare(b.name)).map(c => <option key={c.id} value={c.id}>{c.name} ({c.type})</option>)}
             </select>
           </div>
           <div className="field-wrap">
