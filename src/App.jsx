@@ -224,7 +224,7 @@ export default function App() {
       case 'activity': return <ActivityFeed {...ctx} onOpenProject={setCurrentProjectId} />
       case 'funnel': return <Funnel {...ctx} />
       case 'reports': return <Reports {...ctx} />
-      case 'team': return <Team {...ctx} />
+      case 'team': return <Team {...ctx} canManageTeam={canManageTeam} />
       default: return <Projects {...ctx} onOpenProject={setCurrentProjectId} />
     }
   }
