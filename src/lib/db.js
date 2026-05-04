@@ -35,7 +35,7 @@ export async function loadAll() {
   const results = await Promise.all(tables.map(t => supabase.from(t).select('*')))
   const errors = results.filter(r => r.error)
   if (errors.length) throw new Error(errors.map(r => r.error.message).join(', '))
-  const [team, companies, contacts, rcs, projects, scopes, activities, scopeBuyers] = results.map(r => r.data)
+  const [team, companies, contacts, rcs, projects, scopes, activities, scopeBuyers, scopeStakeholders] = results.map(r => r.data)
   return {
     team: team.map(fromDb.team),
     companies: companies.map(fromDb.company),
