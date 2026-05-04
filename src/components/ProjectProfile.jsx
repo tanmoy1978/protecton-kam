@@ -3,7 +3,7 @@ import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, 
 import Modal from './Modal'
 
 export default function ProjectProfile({ data, currentUser, ops, canEdit, canDelete, projectId, onBack }) {
-  const { projects, scopes, activities, contacts, team, companies, regionalColleagues, scopeBuyers } = data
+  const { projects, scopes, activities, contacts, team, companies, regionalColleagues, scopeBuyers, scopeStakeholders } = data
   const [tab, setTab] = useState('scopes')
   const [modal, setModal] = useState(null)
 
@@ -72,6 +72,17 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     if (!sc) return
     const products = modal.id ? sc.products.map(x => x.id === modal.id ? pr : x) : [...(sc.products || []), pr]
     await ops.saveScope({ ...sc, products })
+    setModal(null)
+  }
+
+  const openStakeholderModal = (scopeId, sk = null) => setModal({
+    _type: 'stakeholder', scopeId,
+    id: sk?.id || null, contactId: sk?.contactId || '', role: sk?.role || '', influence: sk?.influence || '', notes: sk?.notes || ''
+  })
+
+  const saveStakeholder = async () => {
+    if (!modal.contactId) return alert('Select a contact')
+    await ops.saveScopeStakeholder({ ...modal, id: modal.id || uid(), scopeId: modal.scopeId })
     setModal(null)
   }
 
@@ -218,6 +229,32 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                 {!(sc.products || []).length && <div style={{ fontSize: 12, color: '#A0AEC0', padding: '4px 0' }}>No products yet.</div>}
                 {canEdit && <button className="btn-sm" style={{ background: 'var(--lav)', color: 'var(--lavD)', marginTop: 6 }} onClick={() => openProductModal(sc.id)}>+ Add Product</button>}
 
+                {/* Stakeholders Section */}
+                <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)' }}>SCOPE STAKEHOLDERS</div>
+                    {canEdit && <button className="btn-sm" style={{ background: 'var(--peach)', color: 'var(--peachD)' }} onClick={() => openStakeholderModal(sc.id)}>+ Add Stakeholder</button>}
+                  </div>
+                  {scopeStakeholders.filter(sk => sk.scopeId === sc.id).length === 0 && <div style={{ fontSize: 12, color: '#A0AEC0', marginBottom: 4 }}>No stakeholders linked yet.</div>}
+                  {scopeStakeholders.filter(sk => sk.scopeId === sc.id).map(sk => {
+                    const ct = contacts.find(c => c.id === sk.contactId)
+                    const co = ct ? companies.find(c => c.id === ct.companyId) : null
+                    return (
+                      <div key={sk.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 10px', background: '#FFF8F5', border: '1px solid #F5D9CC', borderRadius: 8, marginBottom: 6 }}>
+                        <div style={{ flex: 1 }}>
+                          <span style={{ fontSize: 12, fontWeight: 700 }}>{ct?.name || '—'}</span>
+                          {co && <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 8 }}>{co.name}</span>}
+                          {sk.role && <span className="tag" style={{ background: 'var(--peach)', color: 'var(--peachD)', fontSize: 10, marginLeft: 8 }}>{sk.role}</span>}
+                          {sk.influence && <span style={{ fontSize: 11, color: sk.influence === 'High' ? 'var(--roseD)' : sk.influence === 'Medium' ? 'var(--strawD)' : 'var(--muted)', marginLeft: 6 }}>● {sk.influence}</span>}
+                        </div>
+                        {canEdit && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openStakeholderModal(sc.id, sk)}>edit</button>}
+                        {canDelete && <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => { if (confirm('Remove?')) ops.deleteScopeStakeholder(sk.id) }}>del</button>}
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Buyers & POs Section */}
                 <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--muted)' }}>BUYERS & PURCHASE ORDERS</div>
@@ -500,6 +537,46 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
             <button className="btn btn-primary" onClick={saveBuyer}>Save</button>
+            <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
+          </div>
+        </Modal>
+      )}
+
+      {modal?._type === 'stakeholder' && (
+        <Modal onClose={() => setModal(null)}>
+          <div className="modal-title">{modal.id ? 'Edit Stakeholder' : 'Add Scope Stakeholder'}</div>
+          <div className="field-wrap">
+            <div className="field-label">Contact</div>
+            <select className="inp" value={modal.contactId} onChange={e => setModal(m => ({ ...m, contactId: e.target.value }))}>
+              <option value="">Select contact…</option>
+              {contacts.sort((a,b) => a.name.localeCompare(b.name)).map(c => {
+                const co = companies.find(x => x.id === c.companyId)
+                return <option key={c.id} value={c.id}>{c.name}{co ? ` — ${co.name}` : ''}</option>
+              })}
+            </select>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap">
+              <div className="field-label">Role in this Scope</div>
+              <select className="inp" value={modal.role} onChange={e => setModal(m => ({ ...m, role: e.target.value }))}>
+                <option value="">Select…</option>
+                {['Decision Maker','Approver','Technical Influencer','Procurement','Consultant','Other'].map(r => <option key={r}>{r}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap">
+              <div className="field-label">Influence Level</div>
+              <select className="inp" value={modal.influence} onChange={e => setModal(m => ({ ...m, influence: e.target.value }))}>
+                <option value="">Select…</option>
+                {['High','Medium','Low'].map(i => <option key={i}>{i}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-wrap">
+            <div className="field-label">Notes</div>
+            <textarea className="inp" rows={2} value={modal.notes} onChange={e => setModal(m => ({ ...m, notes: e.target.value }))} placeholder="Any specific notes about this stakeholder's involvement…" />
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-primary" onClick={saveStakeholder}>Save</button>
             <button className="btn btn-outline" onClick={() => setModal(null)}>Cancel</button>
           </div>
         </Modal>

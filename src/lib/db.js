@@ -11,6 +11,7 @@ export const fromDb = {
   scope: r => ({ id: r.id, projectId: r.project_id, name: r.name || r.type, type: r.type, dataSource: r.data_source, scopeValue: r.qty, coatingsPotential: r.coatings_potential || 0, protectonOpportunity: r.protecton_opportunity || 0, qty: r.qty, qtyUnit: r.qty_unit, notes: r.notes, products: r.products || [] }),
   activity: r => ({ id: r.id, projectId: r.project_id, contactId: r.contact_id, userId: r.user_id, type: r.type, date: r.date, note: r.note, rcIds: r.rc_ids || [] }),
   scopeBuyer: r => ({ id: r.id, scopeId: r.scope_id, companyId: r.company_id, subletById: r.sublet_by_id, pos: r.pos || [] }),
+  scopeStakeholder: r => ({ id: r.id, scopeId: r.scope_id, contactId: r.contact_id, role: r.role, influence: r.influence, notes: r.notes || '' }),
 }
 
 export const toDb = {
@@ -22,11 +23,15 @@ export const toDb = {
   scope: s => ({ id: s.id, project_id: s.projectId, name: s.name, type: s.type || s.name, data_source: s.dataSource, coatings_potential: s.coatingsPotential || 0, protecton_opportunity: s.protectonOpportunity || 0, qty: s.qty || null, qty_unit: s.qtyUnit, notes: s.notes, products: s.products || [], stage: s.stage, spec_status: s.specStatus, updated_at: new Date().toISOString() }),
   activity: a => ({ id: a.id, project_id: a.projectId, contact_id: a.contactId || null, user_id: a.userId, type: a.type, date: a.date, note: a.note, rc_ids: a.rcIds || [], updated_at: new Date().toISOString() }),
   scopeBuyer: b => ({ id: b.id, scope_id: b.scopeId, company_id: b.companyId || null, sublet_by_id: b.subletById || null, pos: b.pos || [], updated_at: new Date().toISOString() }),
+  scopeStakeholder: s => ({ id: s.id, scope_id: s.scopeId, contact_id: s.contactId, role: s.role || null, influence: s.influence || null, notes: s.notes || null, updated_at: new Date().toISOString() }),
 }
 
 // ── LOAD ALL DATA ─────────────────────────────────────────────
+export function scopeStakeholderFromDb(r){return{id:r.id,scopeId:r.scope_id,contactId:r.contact_id,role:r.role,influence:r.influence,notes:r.notes||''}}
+export function scopeStakeholderToDb(s){return{id:s.id,scope_id:s.scopeId,contact_id:s.contactId,role:s.role||null,influence:s.influence||null,notes:s.notes||null,updated_at:new Date().toISOString()}}
+
 export async function loadAll() {
-  const tables = ['team', 'companies', 'contacts', 'regional_colleagues', 'projects', 'scopes', 'activities', 'scope_buyers']
+  const tables = ['team', 'companies', 'contacts', 'regional_colleagues', 'projects', 'scopes', 'activities', 'scope_buyers', 'scope_stakeholders']
   const results = await Promise.all(tables.map(t => supabase.from(t).select('*')))
   const errors = results.filter(r => r.error)
   if (errors.length) throw new Error(errors.map(r => r.error.message).join(', '))
@@ -40,6 +45,7 @@ export async function loadAll() {
     scopes: scopes.map(fromDb.scope),
     activities: activities.map(fromDb.activity),
     scopeBuyers: scopeBuyers.map(fromDb.scopeBuyer),
+    scopeStakeholders: scopeStakeholders.map(fromDb.scopeStakeholder),
   }
 }
 
@@ -66,9 +72,9 @@ export async function remove(table, id) {
 
 // ── REALTIME SUBSCRIPTION ─────────────────────────────────────
 export function subscribeAll(onChange) {
-  const tables = ['projects', 'scopes', 'activities', 'companies', 'contacts', 'regional_colleagues', 'team', 'scope_buyers']
-  const mappers = { projects: fromDb.project, scopes: fromDb.scope, activities: fromDb.activity, companies: fromDb.company, contacts: fromDb.contact, regional_colleagues: fromDb.rc, team: fromDb.team, scope_buyers: fromDb.scopeBuyer }
-  const stateKeys = { projects: 'projects', scopes: 'scopes', activities: 'activities', companies: 'companies', contacts: 'contacts', regional_colleagues: 'regionalColleagues', team: 'team', scope_buyers: 'scopeBuyers' }
+  const tables = ['projects', 'scopes', 'activities', 'companies', 'contacts', 'regional_colleagues', 'team', 'scope_buyers', 'scope_stakeholders']
+  const mappers = { projects: fromDb.project, scopes: fromDb.scope, activities: fromDb.activity, companies: fromDb.company, contacts: fromDb.contact, regional_colleagues: fromDb.rc, team: fromDb.team, scope_buyers: fromDb.scopeBuyer, scope_stakeholders: fromDb.scopeStakeholder }
+  const stateKeys = { projects: 'projects', scopes: 'scopes', activities: 'activities', companies: 'companies', contacts: 'contacts', regional_colleagues: 'regionalColleagues', team: 'team', scope_buyers: 'scopeBuyers', scope_stakeholders: 'scopeStakeholders' }
 
   const channel = supabase.channel('db-changes')
   tables.forEach(table => {

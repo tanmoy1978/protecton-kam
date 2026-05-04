@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { loadAll, upsert, remove, subscribeAll, toDb } from './lib/db'
+import { loadAll, upsert, remove, subscribeAll, toDb, scopeStakeholderToDb } from './lib/db'
 import { DEFAULT_TEAM, uid } from './lib/constants'
 import Login from './components/Login'
 import Header from './components/Header'
@@ -19,7 +19,7 @@ export default function App() {
   const [data, setData] = useState({
     team: DEFAULT_TEAM,
     companies: [], contacts: [], regionalColleagues: [],
-    projects: [], scopes: [], activities: [], scopeBuyers: []
+    projects: [], scopes: [], activities: [], scopeBuyers: [], scopeStakeholders: []
   })
   const [currentUser, setCurrentUser] = useState(null)
   const [view, setView] = useState('projects')
@@ -166,6 +166,20 @@ export default function App() {
     await remove('scope_buyers', id)
   }, [])
 
+  const saveScopeStakeholder = useCallback(async (stakeholder) => {
+    setData(prev => {
+      const idx = prev.scopeStakeholders.findIndex(s => s.id === stakeholder.id)
+      const next = idx >= 0 ? prev.scopeStakeholders.map(s => s.id === stakeholder.id ? stakeholder : s) : [...prev.scopeStakeholders, stakeholder]
+      return { ...prev, scopeStakeholders: next }
+    })
+    await saveRows('scope_stakeholders', [stakeholder], toDb.scopeStakeholder)
+  }, [saveRows])
+
+  const deleteScopeStakeholder = useCallback(async (id) => {
+    setData(prev => ({ ...prev, scopeStakeholders: prev.scopeStakeholders.filter(s => s.id !== id) }))
+    await remove('scope_stakeholders', id)
+  }, [])
+
   const saveTeamMember = useCallback(async (member) => {
     setData(prev => ({ ...prev, team: prev.team.map(u => u.id === member.id ? member : u) }))
     await saveRows('team', [member], toDb.team)
@@ -198,6 +212,7 @@ export default function App() {
     saveContact, deleteContact,
     saveActivity, deleteActivity,
     saveScopeBuyer, deleteScopeBuyer,
+    saveScopeStakeholder, deleteScopeStakeholder,
     saveTeamMember,
   }
 
