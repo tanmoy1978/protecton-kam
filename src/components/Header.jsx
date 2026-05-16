@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { id: 'activity', label: 'Activity', icon: '📝' },
   { id: 'funnel', label: 'Funnel', icon: '🔻' },
   { id: 'reports', label: 'Reports', icon: '📈' },
+  { id: 'stakeholders', label: 'Stakeholders', icon: '👥' },
 ]
 
 export default function Header({ currentUser, view, setView, onLogout, onSync, syncStatus, syncMsg, canManageTeam }) {

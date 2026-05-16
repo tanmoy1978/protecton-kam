@@ -12,6 +12,7 @@ import ActivityFeed from './components/ActivityFeed'
 import Funnel from './components/Funnel'
 import Reports from './components/Reports'
 import Team from './components/Team'
+import Stakeholders from './components/Stakeholders'
 
 const VIEWS = ['projects','companies','pipeline','activity','funnel','reports','team']
 
@@ -239,6 +240,7 @@ export default function App() {
       case 'activity': return <ActivityFeed {...ctx} onOpenProject={setCurrentProjectId} />
       case 'funnel': return <Funnel {...ctx} />
       case 'reports': return <Reports {...ctx} />
+      case 'stakeholders': return <Stakeholders {...ctx} onOpenProject={setCurrentProjectId} />
       case 'team': return <Team {...ctx} canManageTeam={canManageTeam} />
       default: return <Projects {...ctx} onOpenProject={setCurrentProjectId} />
     }
