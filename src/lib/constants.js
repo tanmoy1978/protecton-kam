@@ -65,8 +65,16 @@ const AVATAR_COLORS = ['#4A7BBF','#4A8C6A','#C46A45','#7A5BAF','#B04A6A','#B8903
 export const avatarColor = n => { let h = 0; for (let c of (n || '')) h = c.charCodeAt(0) + ((h << 5) - h); return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length] }
 
 export const scopeOpportunity = (s) => {
-  if (s.protectonOpportunity && s.protectonOpportunity > 0) return s.protectonOpportunity
-  return (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
+  const productSum = (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
+  const cap = s.coatingsPotential || 0
+  // Always use product sum, capped at coatings potential if set
+  return cap > 0 ? Math.min(productSum, cap) : productSum
+}
+export const scopeOpportunityRaw = (s) => (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
+export const scopeExceedsCap = (s) => {
+  const productSum = (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
+  const cap = s.coatingsPotential || 0
+  return cap > 0 && productSum > cap
 }
 export const scopeProtecton = (s) => (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
 export const scopePOTotal = (sid, scopeBuyers) => scopeBuyers.filter(b => b.scopeId === sid).reduce((x, b) => (b.pos || []).reduce((y, p) => y + (parseFloat(p.value) || 0), 0) + x, 0)

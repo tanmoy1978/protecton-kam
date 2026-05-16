@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, scopeExceedsCap, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 import Modal from './Modal'
 
 export default function ProjectProfile({ data, currentUser, ops, canEdit, canDelete, projectId, onBack }) {
@@ -39,7 +39,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     dataSource: sc?.dataSource || '',
     scopeValue: sc?.scopeValue || '',
     coatingsPotential: sc?.coatingsPotential || '',
-    protectonOpportunity: sc?.protectonOpportunity || '',
+
     qty: sc?.qty || '',
     qtyUnit: sc?.qtyUnit || '',
     notes: sc?.notes || '',
@@ -53,7 +53,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
       id: modal.id || uid(),
       projectId,
       coatingsPotential: parseFloat(modal.coatingsPotential) || 0,
-      protectonOpportunity: parseFloat(modal.protectonOpportunity) || 0,
+      
       scopeValue: parseFloat(modal.scopeValue) || 0,
       qty: parseFloat(modal.qty) || null
     })
@@ -186,6 +186,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
 
             return (
               <div key={sc.id} className="scope-card">
+                {scopeExceedsCap(sc) && (
+                  <div style={{ background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 8, padding: '6px 10px', marginBottom: 8, fontSize: 12, color: '#92400E' }}>
+                    ⚠ Product values (Rs.{cr((sc.products||[]).reduce((x,p)=>x+(p.valueL||0),0))}) exceed Coatings Potential ({cr(sc.coatingsPotential)}). Please review.
+                  </div>
+                )}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 13 }}>{sc.name || sc.type}</div>
@@ -456,9 +461,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <div className="field-wrap"><div className="field-label">Coatings Potential (L)</div>
               <input className="inp" type="number" value={modal.coatingsPotential} onChange={e => setModal(m => ({ ...m, coatingsPotential: e.target.value }))} />
             </div>
-            <div className="field-wrap"><div className="field-label">Protecton Opportunity (L)</div>
-              <input className="inp" type="number" value={modal.protectonOpportunity} onChange={e => setModal(m => ({ ...m, protectonOpportunity: e.target.value }))} placeholder="Leave blank = auto from products" />
-            </div>
+  
           </div>
           <div className="field-row">
             <div className="field-wrap"><div className="field-label">Quantity</div>
