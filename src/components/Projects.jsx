@@ -53,7 +53,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* Stats */}
-      <div className="grid4" style={{ gridTemplateColumns: "repeat(5,1fr)" }}>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:12, marginBottom:20 }} className="stats-grid-5">
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length} <span style={{ fontSize: 14 }}>projects</span></div>
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Total Projects</div>
@@ -121,11 +121,11 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
                   {owner && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div className="avatar" style={{ width: 16, height: 16, fontSize: 8, background: avatarColor(owner.name) }}>{initials(owner.name)}</div>{owner.name}</span>}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: 16, textAlign: 'right' }}>
-                {pot > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div></div>}
-                {opp > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div></div>}
-                {p.stage === 'Order Won' && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div></div>}
-                {p.stage === 'Order Won' && won > 0 && <div><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div></div>}
+              <div className="project-card-vals">
+                {pot > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div></div>}
+                {opp > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div></div>}
+                {p.stage === 'Order Won' && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div></div>}
+                {p.stage === 'Order Won' && won > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div></div>}
               </div>
               {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4 }}>
                 <button className="btn-ghost" onClick={() => openModal(p)}>edit</button>

@@ -27,7 +27,7 @@ export default function Funnel({ data, visibleProjects }) {
   })
 
   return (
-    <div style={{ maxWidth: 820, margin: '0 auto' }}>
+    <div style={{ maxWidth: 820, margin: '0 auto' }} className="funnel-wrap">
       <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>Pipeline Funnel</div>
       <div style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 28 }}>Value progression from total market to purchase orders received</div>
 
@@ -35,23 +35,23 @@ export default function Funnel({ data, visibleProjects }) {
         const pct = Math.max(4, Math.round(s.val / maxVal * 100))
         const dropPct = i > 0 && steps[i-1].val ? Math.round((1 - s.val / steps[i-1].val) * 100) : 0
         return (
-          <div key={s.label} style={{ marginBottom: 6 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 3 }}>
-              <div style={{ width: 190, fontSize: 12, fontWeight: 700, color: s.color, textAlign: 'right' }}>{s.label}</div>
+          <div key={s.label} style={{ marginBottom: 8 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: s.color, marginBottom: 4 }}>{s.label}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 2 }}>
               <div style={{ flex: 1, position: 'relative', height: 40, background: '#F0F4FA', borderRadius: 8, overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: pct + '%', background: s.bg, borderRadius: 8, transition: 'width 0.6s ease' }} />
                 <div style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 14, fontWeight: 800, color: s.color, zIndex: 1 }}>{cr(s.val)}</div>
               </div>
-              <div style={{ width: 90, fontSize: 11, color: 'var(--muted)' }}>{i === 0 ? '100%' : dropPct > 0 ? `▼ ${dropPct}% drop` : '—'}</div>
+              <div style={{ minWidth: 70, fontSize: 11, color: 'var(--muted)', textAlign: 'right' }}>{i === 0 ? '100%' : dropPct > 0 ? `▼ ${dropPct}%` : '—'}</div>
             </div>
-            <div style={{ marginLeft: 202, fontSize: 11, color: '#A0AEC0', marginBottom: 2 }}>{s.sub}</div>
-            {i < steps.length - 1 && <div style={{ marginLeft: 202, marginBottom: 6, color: '#CBD5E0', fontSize: 18 }}>↓</div>}
+            <div style={{ fontSize: 11, color: '#A0AEC0', marginBottom: 2 }}>{s.sub}</div>
+            {i < steps.length - 1 && <div style={{ marginBottom: 6, color: '#CBD5E0', fontSize: 18 }}>↓</div>}
           </div>
         )
       })}
 
       {totalWon > 0 && (
-        <div style={{ marginTop: 24, background: poBalance > 0 ? 'var(--straw)' : '#EAF7EE', border: `1px solid ${poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)'}`, borderRadius: 12, padding: 16, marginLeft: 202 }}>
+        <div style={{ marginTop: 24, background: poBalance > 0 ? 'var(--straw)' : '#EAF7EE', border: `1px solid ${poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)'}`, borderRadius: 12, padding: 16, }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)', marginBottom: 12 }}>
             {poBalance > 0 ? '⚠ Order Won vs PO Received Gap' : '✓ All Orders Fully Released'}
           </div>
@@ -63,9 +63,9 @@ export default function Funnel({ data, visibleProjects }) {
         </div>
       )}
 
-      <div style={{ marginTop: 32, marginLeft: 202 }}>
+      <div style={{ marginTop: 32, }}>
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Opportunity by Stage</div>
-        <div className="card" style={{ overflow: 'hidden' }}>
+        <div className="card" style={{ overflowX: 'auto' }}>
           <table className="tbl">
             <thead><tr><th>Stage</th><th>Projects</th><th>Opportunity / Won Value</th><th>% of Coatings Potential</th></tr></thead>
             <tbody>

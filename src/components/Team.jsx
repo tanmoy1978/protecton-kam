@@ -56,20 +56,20 @@ export default function Team({ data, ops, canManageTeam }) {
       <div className="grid3" style={{ marginBottom: 24 }}>
         {activeMembers.map(u => (
           <div key={u.id} className="card card-pad">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <div className="avatar" style={{ width: 48, height: 48, fontSize: 16, background: avatarColor(u.name) }}>{initials(u.name)}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>{u.name}</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+              <div className="avatar" style={{ width: 44, height: 44, fontSize: 15, background: avatarColor(u.name) }}>{initials(u.name)}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</div>
                 <div style={{ fontSize: 12, color: 'var(--muted)' }}>{u.role}</div>
                 <div style={{ fontSize: 11, color: 'var(--muted)' }}>{u.region}</div>
               </div>
-              {canManageTeam && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <button className="btn-ghost" style={{ fontSize: 11 }} onClick={() => openEditModal(u)}>edit</button>
-                  <button className="btn-ghost" style={{ fontSize: 11, color: 'var(--roseD)' }} onClick={() => { if (confirm(`Deactivate ${u.name}?`)) handleToggleActive(u) }}>deactivate</button>
-                </div>
-              )}
             </div>
+            {canManageTeam && (
+              <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                <button className="btn-ghost" style={{ fontSize: 12, flex: 1, justifyContent: 'center', border: '1px solid var(--border)', borderRadius: 8 }} onClick={() => openEditModal(u)}>Edit</button>
+                <button className="btn-ghost" style={{ fontSize: 12, flex: 1, justifyContent: 'center', color: 'var(--roseD)', border: '1px solid var(--rose)', borderRadius: 8 }} onClick={() => { if (confirm(`Deactivate ${u.name}?`)) handleToggleActive(u) }}>Deactivate</button>
+              </div>
+            )}
             <button className="btn btn-outline" style={{ width: '100%', fontSize: 11 }} onClick={() => openPinModal(u)}>
               Change PIN
             </button>

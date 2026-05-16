@@ -34,7 +34,7 @@ export default function Reports({ data, visibleProjects }) {
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20, flexWrap: 'wrap' }} className='report-filters'>
         <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ width: 140 }}>
           <option value="All">All Regions</option>
           {['West','South','North','East'].map(r => <option key={r}>{r}</option>)}
@@ -65,7 +65,7 @@ export default function Reports({ data, visibleProjects }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--roseD)' }}>Spec Risk</div>
             </div>
           </div>
-          <div className="card" style={{ overflow: 'hidden' }}>
+          <div className="card" style={{ overflowX: 'auto' }}>
             <table className="tbl">
               <thead><tr><th>Project</th><th>Sector</th><th>Region</th><th>EPC</th><th>Stage</th><th>Spec</th><th>KAM</th><th>Potential</th><th>Protecton</th><th>Capture</th></tr></thead>
               <tbody>
@@ -111,7 +111,7 @@ export default function Reports({ data, visibleProjects }) {
           {wonProjects.length > 0 && (
             <div style={{ marginBottom: 20 }}>
               <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--sageD)', marginBottom: 10 }}>Orders Won</div>
-              <div className="card" style={{ overflow: 'hidden' }}>
+              <div className="card" style={{ overflowX: 'auto' }}>
                 <table className="tbl">
                   <thead><tr><th>Project</th><th>Sector</th><th>Region</th><th>KAM</th><th>Potential</th><th>Won Value</th><th>Capture</th></tr></thead>
                   <tbody>
@@ -150,7 +150,7 @@ export default function Reports({ data, visibleProjects }) {
               return <div key={s} style={{ background: bg, borderRadius: 12, padding: '14px 16px' }}><div style={{ fontSize: 28, fontWeight: 800, color: col }}>{count}</div><div style={{ fontSize: 11, fontWeight: 700, color: col }}>{s}</div></div>
             })}
           </div>
-          <div className="card" style={{ overflow: 'hidden' }}>
+          <div className="card" style={{ overflowX: 'auto' }}>
             <table className="tbl">
               <thead><tr><th>Project</th><th>Stage</th><th>Spec Status</th><th>KAM</th><th>Potential</th><th>Opportunity</th></tr></thead>
               <tbody>
