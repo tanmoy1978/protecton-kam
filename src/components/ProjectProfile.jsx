@@ -146,15 +146,15 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opportunity</div>
           <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Product values — active scopes</div>
         </div>
-        <div className="stat-card" style={{ background: isWon ? 'var(--sage)' : 'var(--slate)' }}>
-          <div className="stat-val" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr(won) || '—') : '—'}</div>
-          <div className="stat-label" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr_ + '% capture rate') : 'All scopes, all stages'}</div>
+        <div className="stat-card" style={{ background: won > 0 ? 'var(--sage)' : 'var(--slate)' }}>
+          <div className="stat-val" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>{won > 0 ? cr(won) : '—'}</div>
+          <div className="stat-label" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>Orders Won</div>
+          <div className="stat-sub" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>{won > 0 ? (cr_ + '% capture rate') : 'All scopes, all stages'}</div>
         </div>
-        <div className="stat-card" style={{ background: isWon ? '#B8E6CC' : 'var(--slate)' }}>
-          <div className="stat-val" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (cr(poTotal) || '—') : '—'}</div>
-          <div className="stat-label" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>POs Received</div>
-          <div className="stat-sub" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'All scopes, all stages'}</div>
+        <div className="stat-card" style={{ background: poTotal > 0 ? '#B8E6CC' : 'var(--slate)' }}>
+          <div className="stat-val" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>{poTotal > 0 ? cr(poTotal) : '—'}</div>
+          <div className="stat-label" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>POs Received</div>
+          <div className="stat-sub" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>{poTotal > 0 && won > 0 ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'All scopes, all stages'}</div>
         </div>
       </div>
 
