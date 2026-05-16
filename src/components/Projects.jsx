@@ -52,49 +52,47 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
   return (
     <div>
-      {/* Stats */}
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:12, marginBottom:20 }} className="stats-grid-5">
+      {/* Stats — 2x2 grid + 5th card on mobile */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: 16 }} className="stats-grid-5">
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
-          <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length} <span style={{ fontSize: 14 }}>projects</span></div>
-          <div className="stat-label" style={{ color: 'var(--blueD)' }}>Total Projects</div>
-          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>{visibleProjects.length} total incl. inactive</div>
+          <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length}</div>
+          <div className="stat-label" style={{ color: 'var(--blueD)' }}>Projects</div>
+          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>{visibleProjects.length} total</div>
         </div>
         <div className="stat-card" style={{ background: 'var(--straw)' }}>
           <div className="stat-val" style={{ color: 'var(--strawD)' }}>{cr(totalPot)}</div>
           <div className="stat-label" style={{ color: 'var(--strawD)' }}>Coatings Potential</div>
-          <div className="stat-sub" style={{ color: 'var(--strawD)' }}>Total market across active projects</div>
+          <div className="stat-sub" style={{ color: 'var(--strawD)' }}>Total market</div>
         </div>
         <div className="stat-card" style={{ background: 'var(--lav)' }}>
           <div className="stat-val" style={{ color: 'var(--lavD)' }}>{totalOpp ? cr(totalOpp) : '—'}</div>
-          <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opportunity</div>
-          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable by Protecton products</div>
+          <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opp.</div>
+          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable</div>
         </div>
         <div className="stat-card" style={{ background: 'var(--sage)' }}>
           <div className="stat-val" style={{ color: 'var(--sageD)' }}>{totalWon ? cr(totalWon) : '—'}</div>
           <div className="stat-label" style={{ color: 'var(--sageD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: 'var(--sageD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '% of opportunity' : 'Protecton orders won'}</div>
+          <div className="stat-sub" style={{ color: 'var(--sageD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '% capture' : 'Won'}</div>
         </div>
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div className="stat-val" style={{ color: 'var(--blueD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '%' : '—'}</div>
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Capture Rate</div>
-          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>Orders Won ÷ Protecton Opp.</div>
+          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>Won ÷ Opp.</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ width: 220 }} />
-        <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ width: 180 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
+        <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ flex: 1, minWidth: 120 }}>
           <option value="All">All Stages</option>
           {STAGES.map(s => <option key={s}>{s}</option>)}
         </select>
-        <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ width: 140 }}>
+        <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ flex: 1, minWidth: 100 }}>
           <option value="All">All Regions</option>
           {REGIONS.filter(r => r !== 'All').map(r => <option key={r}>{r}</option>)}
         </select>
-        <div style={{ marginLeft: 'auto' }}>
-          {canEdit && <button className="btn btn-primary" onClick={() => openModal()}>+ New Project</button>}
-        </div>
+        {canEdit && <button className="btn btn-primary" onClick={() => openModal()} style={{ whiteSpace: 'nowrap' }}>+ New Project</button>}
       </div>
 
       {/* Project List */}
@@ -106,32 +104,54 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
         const owner = team.find(u => u.id === p.kamOwnerId)
         return (
           <div key={p.id} className="project-card" onClick={() => onOpenProject(p.id)}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 6 }}>
-                  <span style={{ fontWeight: 700, fontSize: 14 }}>{p.name}</span>
-                  <span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666', fontSize: 10 }}>{p.stage}</span>
-                  {p.specStatus && <span style={{ fontSize: 11, color: 'var(--muted)' }}>{p.specStatus}</span>}
-                  {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)', fontSize: 10 }}>{p.pathType}</span>}
-                </div>
-                <div style={{ display: 'flex', gap: 16, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap' }}>
-                  {p.sector && <span>{p.sector}</span>}
-                  {p.region && <span>{p.region}</span>}
-                  {p.epcId && <span>EPC: {companyName(p.epcId)}</span>}
-                  {owner && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><div className="avatar" style={{ width: 16, height: 16, fontSize: 8, background: avatarColor(owner.name) }}>{initials(owner.name)}</div>{owner.name}</span>}
-                </div>
-              </div>
-              <div className="project-card-vals">
-                {pot > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div></div>}
-                {opp > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div></div>}
-                {p.stage === 'Order Won' && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div></div>}
-                {p.stage === 'Order Won' && won > 0 && <div className="project-card-val"><div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div><div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div></div>}
-              </div>
-              {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4 }}>
-                <button className="btn-ghost" onClick={() => openModal(p)}>edit</button>
-                {canDelete && <button className="btn-ghost" onClick={() => { if (confirm('Delete project?')) ops.deleteProject(p.id) }}>del</button>}
+            {/* Top row: name + edit/del */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, flex: 1, marginRight: 8 }}>{p.name}</div>
+              {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => openModal(p)}>edit</button>
+                {canDelete && <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => { if (confirm('Delete project?')) ops.deleteProject(p.id) }}>del</button>}
               </div>}
             </div>
+
+            {/* Badges */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+              <span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666', fontSize: 10 }}>{p.stage}</span>
+              {p.specStatus && p.specStatus !== 'Not Specified' && <span style={{ fontSize: 10, color: 'var(--muted)', padding: '2px 6px', background: 'var(--bg)', borderRadius: 6 }}>{p.specStatus}</span>}
+              {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)', fontSize: 10 }}>{p.pathType}</span>}
+            </div>
+
+            {/* Meta */}
+            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap', marginBottom: 10 }}>
+              {p.sector && <span>{p.sector}</span>}
+              {p.region && <span>{p.region}</span>}
+              {p.epcId && <span>EPC: {companyName(p.epcId)}</span>}
+              {owner && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div className="avatar" style={{ width: 14, height: 14, fontSize: 7, background: avatarColor(owner.name) }}>{initials(owner.name)}</div>
+                {owner.name}
+              </span>}
+            </div>
+
+            {/* Values row — full width, even spacing */}
+            {(pot > 0 || opp > 0 || p.stage === 'Order Won') && (
+              <div style={{ display: 'flex', gap: 0, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+                {pot > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div>
+                </div>}
+                {opp > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div>
+                </div>}
+                {p.stage === 'Order Won' && <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div>
+                </div>}
+                {p.stage === 'Order Won' && won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div>
+                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div>
+                </div>}
+              </div>
+            )}
           </div>
         )
       })}

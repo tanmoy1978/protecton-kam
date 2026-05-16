@@ -122,10 +122,10 @@ select.inp { cursor: pointer; }
 .project-card-val { flex-shrink: 0; }
 
 /* ── STATS GRID 5 ────────────────────────────────────────────── */
-.stats-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 20px; }
+.stats-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 16px; }
 
 @media (max-width: 768px) {
-  .stats-grid-5 { grid-template-columns: repeat(2,1fr); }
+  .stats-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 10px; margin-bottom: 16px; }
   .project-card-vals { flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
   .project-card-val { min-width: 52px; }
   .report-filters select.inp, .report-filters input.inp { width: 100% !important; }
