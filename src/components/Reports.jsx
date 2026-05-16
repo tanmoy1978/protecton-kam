@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { cr, fmt, projectCoatingsPotential, projectOpportunity, projectWonValue, captureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, projectWonValue, poCaptureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
 export default function Reports({ data, visibleProjects }) {
-  const { scopes, team, companies } = data
+  const { scopes, scopeBuyers, team, companies } = data
   const [tab, setTab] = useState('pipeline')
   const [filterRegion, setFilterRegion] = useState('All')
   const [filterKam, setFilterKam] = useState('All')
@@ -21,8 +21,9 @@ export default function Reports({ data, visibleProjects }) {
   const totalPot = fp.filter(p => p.status === 'Active').reduce((x, p) => x + projectCoatingsPotential(p.id, scopes), 0)
   const totalOpp = fp.filter(p => p.status === 'Active').reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
 
-  const wonProjects = fp.filter(p => p.stage === 'Order Won')
-  const lostProjects = fp.filter(p => p.stage === 'Order Lost')
+  // Projects with at least one Order Won scope
+  const wonProjects = fp.filter(p => scopes.some(s => s.projectId === p.id && s.stage === 'Order Won'))
+  const lostProjects = fp.filter(p => scopes.every(s => s.projectId !== p.id || ['Order Lost','Cancelled'].includes(s.stage)) && scopes.some(s => s.projectId === p.id))
 
   return (
     <div>
@@ -61,7 +62,7 @@ export default function Reports({ data, visibleProjects }) {
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--lavD)' }}>Protecton Opportunity</div>
             </div>
             <div style={{ background: 'var(--rose)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--roseD)' }}>{fp.filter(p => p.specStatus === 'Not Specified' && p.status === 'Active').length}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--roseD)' }}>{fp.filter(p => p.status === 'Active' && scopes.filter(s => s.projectId === p.id).some(s => !s.specStatus || s.specStatus === '' || s.specStatus === 'Not Specified')).length}</div>
               <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--roseD)' }}>Spec Risk</div>
             </div>
           </div>
@@ -72,8 +73,9 @@ export default function Reports({ data, visibleProjects }) {
                 {fp.map(p => {
                   const pot = projectCoatingsPotential(p.id, scopes)
                   const opp = projectOpportunity(p.id, scopes)
-                  const won = projectWonValue(p.id, scopes)
-                  const cr_ = p.stage === 'Order Won' ? captureRate(opp || pot, won) : null
+                  const ppo = projectPOTotal(p.id, scopes, scopeBuyers)
+                  const cr_ = poCaptureRate(opp, ppo)
+                  const bestStage = projectBestStage(p.id, scopes)
                   const owner = team.find(u => u.id === p.kamOwnerId)
                   return (
                     <tr key={p.id}>
@@ -81,12 +83,12 @@ export default function Reports({ data, visibleProjects }) {
                       <td style={{ fontSize: 11 }}>{p.sector || '—'}</td>
                       <td style={{ fontSize: 11 }}>{p.region || '—'}</td>
                       <td style={{ fontSize: 11 }}>{companyName(p.epcId)}</td>
-                      <td><span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666', fontSize: 10 }}>{p.stage}</span></td>
+                      <td><span className="badge" style={{ background: STAGE_COLORS[bestStage] || '#eee', color: STAGE_TEXT[bestStage] || '#666', fontSize: 10 }}>{bestStage || '—'}</span></td>
                       <td style={{ fontSize: 11 }}>{p.specStatus || '—'}</td>
                       <td style={{ fontSize: 11 }}>{owner?.name || '—'}</td>
                       <td style={{ fontWeight: 700 }}>{cr(pot)}</td>
-                      <td style={{ fontWeight: 700, color: 'var(--lavD)' }}>{p.stage === 'Order Won' ? cr(won) : cr(opp)}</td>
-                      <td style={{ fontWeight: 700, color: cr_ !== null ? (cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : 'var(--roseD)') : '#B0BEC5' }}>{cr_ !== null ? cr_ + '%' : '—'}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp) || '—'}</td>
+                      <td style={{ fontWeight: 700, color: cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : cr_ > 0 ? 'var(--roseD)' : '#B0BEC5' }}>{ppo > 0 ? cr_ + '%' : '—'}</td>
                     </tr>
                   )
                 })}
@@ -100,8 +102,8 @@ export default function Reports({ data, visibleProjects }) {
         <div>
           <div className="grid4" style={{ marginBottom: 20 }}>
             <div style={{ background: 'var(--sage)', borderRadius: 12, padding: '14px 16px' }}>
-              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--sageD)' }}>{cr(wonProjects.reduce((x,p) => x + projectWonValue(p.id, scopes), 0)) || '—'}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sageD)' }}>Won ({wonProjects.length} projects)</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--sageD)' }}>{cr(wonProjects.reduce((x,p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)) || '—'}</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--sageD)' }}>POs Received — Won Projects ({wonProjects.length})</div>
             </div>
             <div style={{ background: 'var(--rose)', borderRadius: 12, padding: '14px 16px' }}>
               <div style={{ fontSize: 22, fontWeight: 800, color: 'var(--roseD)' }}>{cr(lostProjects.reduce((x,p) => x + projectOpportunity(p.id, scopes), 0)) || '—'}</div>
@@ -113,12 +115,13 @@ export default function Reports({ data, visibleProjects }) {
               <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--sageD)', marginBottom: 10 }}>Orders Won</div>
               <div className="card" style={{ overflowX: 'auto' }}>
                 <table className="tbl">
-                  <thead><tr><th>Project</th><th>Sector</th><th>Region</th><th>KAM</th><th>Potential</th><th>Won Value</th><th>Capture</th></tr></thead>
+                  <thead><tr><th>Project</th><th>Sector</th><th>Region</th><th>KAM</th><th>Potential</th><th>POs Received</th><th>Capture Rate</th></tr></thead>
                   <tbody>
                     {wonProjects.map(p => {
                       const pot = projectCoatingsPotential(p.id, scopes)
                       const opp = projectOpportunity(p.id, scopes)
-                      const won = projectWonValue(p.id, scopes)
+                      const ppo = projectPOTotal(p.id, scopes, scopeBuyers)
+                      const cr_ = poCaptureRate(opp, ppo)
                       const owner = team.find(u => u.id === p.kamOwnerId)
                       return (
                         <tr key={p.id}>
@@ -127,8 +130,8 @@ export default function Reports({ data, visibleProjects }) {
                           <td style={{ fontSize: 11 }}>{p.region || '—'}</td>
                           <td style={{ fontSize: 11 }}>{owner?.name || '—'}</td>
                           <td style={{ fontWeight: 700 }}>{cr(pot)}</td>
-                          <td style={{ fontWeight: 700, color: 'var(--sageD)' }}>{cr(won)}</td>
-                          <td style={{ fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</td>
+                          <td style={{ fontWeight: 700, color: '#2D7A4F' }}>{cr(ppo) || '—'}</td>
+                          <td style={{ fontWeight: 700, color: 'var(--sageD)' }}>{ppo > 0 ? cr_ + '%' : '—'}</td>
                         </tr>
                       )
                     })}
@@ -159,7 +162,7 @@ export default function Reports({ data, visibleProjects }) {
                   return (
                     <tr key={p.id}>
                       <td style={{ fontWeight: 600 }}>{p.name}</td>
-                      <td><span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666', fontSize: 10 }}>{p.stage}</span></td>
+                      <td>{(() => { const s = projectBestStage(p.id, scopes); return s ? <span className="badge" style={{ background: STAGE_COLORS[s] || '#eee', color: STAGE_TEXT[s] || '#666', fontSize: 10 }}>{s}</span> : '—' })()}</td>
                       <td style={{ fontSize: 11 }}>{p.specStatus || 'Not Specified'}</td>
                       <td style={{ fontSize: 11 }}>{owner?.name || '—'}</td>
                       <td style={{ fontWeight: 700 }}>{cr(projectCoatingsPotential(p.id, scopes))}</td>
