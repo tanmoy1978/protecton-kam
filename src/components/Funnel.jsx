@@ -1,11 +1,10 @@
-import { cr, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
 export default function Funnel({ data, visibleProjects }) {
   const { scopes, scopeBuyers } = data
   const activeP = visibleProjects.filter(p => p.status === 'Active')
   const totalPot = activeP.reduce((x, p) => x + projectCoatingsPotential(p.id, scopes), 0)
   const totalOpp = activeP.reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
-  const totalWon = activeP.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
   const totalPO = activeP.reduce((x, p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)
   const poBalance = totalOpp - totalPO
   const maxVal = totalPot || 1

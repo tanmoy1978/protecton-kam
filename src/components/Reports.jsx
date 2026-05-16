@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, projectWonValue, poCaptureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, poCaptureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
 export default function Reports({ data, visibleProjects }) {
   const { scopes, scopeBuyers, team, companies } = data

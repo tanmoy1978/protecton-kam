@@ -1,4 +1,4 @@
-import { cr, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, projectBestStage, poCaptureRate, initials, avatarColor, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, poCaptureRate, initials, avatarColor, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
 export default function Pipeline({ data, visibleProjects }) {
   const { scopes, scopeBuyers, team } = data
