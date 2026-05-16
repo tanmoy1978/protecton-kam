@@ -179,9 +179,9 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           {pScopes.map(sc => {
             const sPot = sc.coatingsPotential || 0
             const sOpp = scopeOpportunity(sc)
-            const sCr = poCaptureRate(sOpp, sPOTotal)
             const sBuyers = scopeBuyers.filter(b => b.scopeId === sc.id)
             const sPOTotal = sBuyers.reduce((x, b) => (b.pos || []).reduce((y, po) => y + (parseFloat(po.value) || 0), 0) + x, 0)
+            const sCr = poCaptureRate(sOpp, sPOTotal)
 
             return (
               <div key={sc.id} className="scope-card">
