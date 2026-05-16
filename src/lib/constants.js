@@ -118,3 +118,5 @@ export const projectBestStage = (pid, scopes) => {
 }
 
 export const captureRate = (opp, won) => { if (!opp) return 0; return Math.min(100, Math.round(won / opp * 100)) }
+// New capture rate: POs Received ÷ Protecton Opportunity
+export const poCaptureRate = (opp, po) => { if (!opp) return 0; return Math.min(100, Math.round(po / opp * 100)) }

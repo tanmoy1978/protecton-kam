@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cr, fmt, initials, avatarColor, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, projectBestStage, captureRate, uid, STAGES, PATH_TYPES, SECTORS, PROJ_STATUS, REGIONS, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, fmt, initials, avatarColor, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, poCaptureRate, uid, STAGES, PATH_TYPES, SECTORS, PROJ_STATUS, REGIONS, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 import Modal from './Modal'
 
 export default function Projects({ data, currentUser, ops, canEdit, canDelete, visibleProjects, onOpenProject }) {
@@ -12,8 +12,8 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   const activeP = visibleProjects.filter(p => p.status === 'Active')
   const totalPot = activeP.reduce((x, p) => x + projectCoatingsPotential(p.id, scopes), 0)
   const totalOpp = activeP.reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
-  const totalWon = activeP.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
   const totalPO = activeP.reduce((x, p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)
+  const totalCR = poCaptureRate(totalOpp, totalPO)
 
   const [filterStatus, setFilterStatus] = useState('Active')
   const filtered = visibleProjects.filter(p => {
@@ -72,20 +72,15 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
           <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opp.</div>
           <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable</div>
         </div>
-        <div className="stat-card" style={{ background: 'var(--sage)' }}>
-          <div className="stat-val" style={{ color: 'var(--sageD)' }}>{totalWon ? cr(totalWon) : '—'}</div>
-          <div className="stat-label" style={{ color: 'var(--sageD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: 'var(--sageD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '% capture' : 'Won'}</div>
-        </div>
-        <div className="stat-card" style={{ background: 'var(--blue)' }}>
-          <div className="stat-val" style={{ color: 'var(--blueD)' }}>{totalWon && totalOpp ? captureRate(totalOpp, totalWon) + '%' : '—'}</div>
-          <div className="stat-label" style={{ color: 'var(--blueD)' }}>Capture Rate</div>
-          <div className="stat-sub" style={{ color: 'var(--blueD)' }}>Won ÷ Opp.</div>
-        </div>
         <div className="stat-card" style={{ background: '#B8E6CC' }}>
           <div className="stat-val" style={{ color: '#2D7A4F' }}>{totalPO ? cr(totalPO) : '—'}</div>
           <div className="stat-label" style={{ color: '#2D7A4F' }}>POs Received</div>
           <div className="stat-sub" style={{ color: '#2D7A4F' }}>Actual purchase orders</div>
+        </div>
+        <div className="stat-card" style={{ background: totalCR >= 60 ? 'var(--sage)' : totalCR >= 30 ? 'var(--straw)' : 'var(--rose)' }}>
+          <div className="stat-val" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>{totalPO && totalOpp ? totalCR + '%' : '—'}</div>
+          <div className="stat-label" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>Capture Rate</div>
+          <div className="stat-sub" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>POs ÷ Protecton Opp.</div>
         </div>
       </div>
 
@@ -150,7 +145,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
             </div>
 
             {/* Values row — full width, even spacing */}
-            {(pot > 0 || opp > 0 || won > 0) && (
+            {(pot > 0 || opp > 0) && (
               <div style={{ display: 'flex', gap: 0, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
                 {pot > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div>
@@ -160,14 +155,20 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div>
                   <div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div>
                 </div>}
-                {won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won)}</div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div>
-                </div>}
-                {won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div>
-                </div>}
+                {(() => {
+                  const pPO = projectPOTotal(p.id, scopes, scopeBuyers)
+                  const pCR = poCaptureRate(opp, pPO)
+                  return (<>
+                    {pPO > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#2D7A4F' }}>{cr(pPO)}</div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>POs</div>
+                    </div>}
+                    {pPO > 0 && opp > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: pCR >= 60 ? 'var(--sageD)' : pCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>{pCR}%</div>
+                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div>
+                    </div>}
+                  </>)
+                })()}
               </div>
             )}
           </div>

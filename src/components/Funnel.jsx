@@ -4,26 +4,25 @@ export default function Funnel({ data, visibleProjects }) {
   const { scopes, scopeBuyers } = data
   const activeP = visibleProjects.filter(p => p.status === 'Active')
   const totalPot = activeP.reduce((x, p) => x + projectCoatingsPotential(p.id, scopes), 0)
-  const wonProjects = activeP.filter(p => p.stage === 'Order Won')
-  const oppProjects = activeP.filter(p => !['Order Won','Order Lost','Cancelled'].includes(p.stage))
-  const totalOpp = [...wonProjects, ...oppProjects].reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
-  const totalWon = wonProjects.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
-  const totalPO = wonProjects.reduce((x, p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)
-  const poBalance = totalWon - totalPO
+  const totalOpp = activeP.reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
+  const totalWon = activeP.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
+  const totalPO = activeP.reduce((x, p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)
+  const poBalance = totalOpp - totalPO
   const maxVal = totalPot || 1
 
   const steps = [
     { label: 'Coatings Potential', val: totalPot, sub: 'Total coatings market across active projects', color: 'var(--blueD)', bg: 'var(--blue)' },
-    { label: 'Protecton Opportunity', val: totalOpp, sub: 'Addressable by Protecton products', color: 'var(--lavD)', bg: 'var(--lav)' },
-    { label: 'Order Won', val: totalWon, sub: 'Commercially awarded to Protecton', color: 'var(--sageD)', bg: 'var(--sage)' },
-    { label: 'PO Received', val: totalPO, sub: 'Actual purchase orders released by buyers', color: '#2D7A4F', bg: '#B8E6CC' },
+    { label: 'Protecton Opportunity', val: totalOpp, sub: 'Product values across active scopes', color: 'var(--lavD)', bg: 'var(--lav)' },
+    { label: 'POs Received', val: totalPO, sub: 'Actual purchase orders released by buyers', color: '#2D7A4F', bg: '#B8E6CC' },
   ].filter(s => s.val > 0 || s.label === 'Coatings Potential')
 
+  // Group by scope stage
   const stageGroups = {}
-  activeP.forEach(p => {
-    if (!stageGroups[p.stage]) stageGroups[p.stage] = { count: 0, opp: 0 }
-    stageGroups[p.stage].count++
-    stageGroups[p.stage].opp += projectOpportunity(p.id, scopes)
+  scopes.filter(s => activeP.some(p => p.id === s.projectId)).forEach(s => {
+    const stage = s.stage || 'Project Identified'
+    if (!stageGroups[stage]) stageGroups[stage] = { count: 0, opp: 0 }
+    stageGroups[stage].count++
+    stageGroups[stage].opp += s.coatingsPotential || 0
   })
 
   return (
@@ -50,13 +49,13 @@ export default function Funnel({ data, visibleProjects }) {
         )
       })}
 
-      {totalWon > 0 && (
-        <div style={{ marginTop: 24, background: poBalance > 0 ? 'var(--straw)' : '#EAF7EE', border: `1px solid ${poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)'}`, borderRadius: 12, padding: 16, }}>
+      {totalOpp > 0 && (
+        <div style={{ marginTop: 24, background: poBalance > 0 ? 'var(--straw)' : '#EAF7EE', border: `1px solid ${poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)'}`, borderRadius: 12, padding: 16 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: poBalance > 0 ? 'var(--strawD)' : 'var(--sageD)', marginBottom: 12 }}>
-            {poBalance > 0 ? '⚠ Order Won vs PO Received Gap' : '✓ All Orders Fully Released'}
+            {poBalance > 0 ? '⚠ Opportunity vs PO Received Gap' : '✓ All Opportunity Fully Received'}
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
-            <div><div style={{ fontSize: 20, fontWeight: 800, color: 'var(--sageD)' }}>{cr(totalWon)}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Order Won</div></div>
+            <div><div style={{ fontSize: 20, fontWeight: 800, color: 'var(--lavD)' }}>{cr(totalOpp)}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Protecton Opportunity</div></div>
             <div><div style={{ fontSize: 20, fontWeight: 800, color: '#2D7A4F' }}>{cr(totalPO) || '—'}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>PO Received</div></div>
             <div><div style={{ fontSize: 20, fontWeight: 800, color: poBalance > 0 ? 'var(--roseD)' : 'var(--sageD)' }}>{poBalance > 0 ? cr(poBalance) : 'Nil'}</div><div style={{ fontSize: 11, color: 'var(--muted)' }}>Balance Pending</div></div>
           </div>
@@ -67,7 +66,7 @@ export default function Funnel({ data, visibleProjects }) {
         <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 14 }}>Opportunity by Stage</div>
         <div className="card" style={{ overflowX: 'auto' }}>
           <table className="tbl">
-            <thead><tr><th>Stage</th><th>Projects</th><th>Opportunity / Won Value</th><th>% of Coatings Potential</th></tr></thead>
+            <thead><tr><th>Stage</th><th>Scopes</th><th>Coatings Potential</th><th>% of Total</th></tr></thead>
             <tbody>
               {Object.entries(stageGroups).filter(([stage]) => stage !== 'Order Won').map(([stage, { count, opp }]) => {
                 const pctOpp = totalPot ? Math.round(opp / totalPot * 100) : 0
@@ -85,19 +84,7 @@ export default function Funnel({ data, visibleProjects }) {
                   </tr>
                 )
               })}
-              {wonProjects.length > 0 && (
-                <tr style={{ background: '#EAF7EE' }}>
-                  <td><span className="badge" style={{ background: STAGE_COLORS['Order Won'], color: STAGE_TEXT['Order Won'], fontSize: 10 }}>Order Won</span></td>
-                  <td style={{ fontWeight: 600 }}>{wonProjects.length}</td>
-                  <td style={{ fontWeight: 700, color: 'var(--sageD)' }}>{cr(totalWon) || '—'}</td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div className="prog-wrap" style={{ width: 80 }}><div className="prog-bar" style={{ width: (totalPot ? Math.round(totalWon / totalPot * 100) : 0) + '%', background: 'var(--sageD)' }} /></div>
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{totalPot ? Math.round(totalWon / totalPot * 100) : 0}%</span>
-                    </div>
-                  </td>
-                </tr>
-              )}
+
             </tbody>
           </table>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, scopeExceedsCap, scopeIsWon, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, scopeExceedsCap, scopeIsWon, scopePOTotal, projectCoatingsPotential, projectOpportunity, projectPOTotal, poCaptureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 import Modal from './Modal'
 
 export default function ProjectProfile({ data, currentUser, ops, canEdit, canDelete, projectId, onBack }) {
@@ -14,9 +14,8 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
   const pActs = activities.filter(a => a.projectId === projectId).sort((a,b) => new Date(b.date)-new Date(a.date))
   const pot = projectCoatingsPotential(projectId, scopes)
   const opp = projectOpportunity(projectId, scopes)
-  const won = projectWonValue(projectId, scopes)
   const poTotal = projectPOTotal(projectId, scopes, scopeBuyers)
-  const cr_ = won > 0 ? captureRate(opp || pot, won) : 0
+  const cr_ = poCaptureRate(opp, poTotal)
 
   const companyName = id => companies.find(c => c.id === id)?.name || '—'
   const userName = id => team.find(u => u.id === id)?.name || '—'
@@ -146,15 +145,15 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opportunity</div>
           <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Product values — active scopes</div>
         </div>
-        <div className="stat-card" style={{ background: won > 0 ? 'var(--sage)' : 'var(--slate)' }}>
-          <div className="stat-val" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>{won > 0 ? cr(won) : '—'}</div>
-          <div className="stat-label" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: won > 0 ? 'var(--sageD)' : 'var(--slateD)' }}>{won > 0 ? (cr_ + '% capture rate') : 'All scopes, all stages'}</div>
-        </div>
         <div className="stat-card" style={{ background: poTotal > 0 ? '#B8E6CC' : 'var(--slate)' }}>
           <div className="stat-val" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>{poTotal > 0 ? cr(poTotal) : '—'}</div>
           <div className="stat-label" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>POs Received</div>
-          <div className="stat-sub" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>{poTotal > 0 && won > 0 ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'All scopes, all stages'}</div>
+          <div className="stat-sub" style={{ color: poTotal > 0 ? '#2D7A4F' : 'var(--slateD)' }}>All scopes, all stages</div>
+        </div>
+        <div className="stat-card" style={{ background: cr_ >= 60 ? 'var(--sage)' : cr_ >= 30 ? 'var(--straw)' : 'var(--slate)' }}>
+          <div className="stat-val" style={{ color: cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : 'var(--slateD)' }}>{poTotal && opp ? cr_ + '%' : '—'}</div>
+          <div className="stat-label" style={{ color: cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : 'var(--slateD)' }}>Capture Rate</div>
+          <div className="stat-sub" style={{ color: cr_ >= 60 ? 'var(--sageD)' : cr_ >= 30 ? 'var(--strawD)' : 'var(--slateD)' }}>POs ÷ Protecton Opportunity</div>
         </div>
       </div>
 
@@ -170,8 +169,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
               {pScopes.length} scope{pScopes.length !== 1 ? 's' : ''} — Potential: <b>{cr(pot) || '—'}</b>
               {opp > 0 && <> — Opportunity: <b style={{ color: 'var(--lavD)' }}>{cr(opp)}</b></>}
-              {won > 0 && <> — Won: <b style={{ color: 'var(--sageD)' }}>{cr(won)}</b> — Capture: <b>{captureRate(opp || pot, won)}%</b></>}
-              {poTotal > 0 && <> — POs: <b style={{ color: '#2D7A4F' }}>{cr(poTotal)}</b></>}
+              {poTotal > 0 && <> — POs: <b style={{ color: '#2D7A4F' }}>{cr(poTotal)}</b> — Capture: <b>{cr_}%</b></>}
             </div>
             {canEdit && <button className="btn btn-primary" onClick={() => openScopeModal()}>+ Add Scope</button>}
           </div>
@@ -181,8 +179,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
           {pScopes.map(sc => {
             const sPot = sc.coatingsPotential || 0
             const sOpp = scopeOpportunity(sc)
-            const sWon = scopeProtecton(sc)
-            const sCr = scopeIsWon(sc) ? captureRate(sOpp || sPot, sWon) : 0
+            const sCr = poCaptureRate(sOpp, sPOTotal)
             const sBuyers = scopeBuyers.filter(b => b.scopeId === sc.id)
             const sPOTotal = sBuyers.reduce((x, b) => (b.pos || []).reduce((y, po) => y + (parseFloat(po.value) || 0), 0) + x, 0)
 
@@ -218,8 +215,8 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                     <div className="scope-val-label">Protecton Opportunity</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: scopeIsWon(sc) ? 'var(--sageD)' : '#B0BEC5' }}>{scopeIsWon(sc) ? (cr(sWon) || '—') : '—'}</div>
-                    <div className="scope-val-label">Orders Won</div>
+                    <div className="scope-val-num" style={{ color: sCr >= 60 ? 'var(--sageD)' : sCr >= 30 ? 'var(--strawD)' : sCr > 0 ? 'var(--roseD)' : '#B0BEC5' }}>{sCr > 0 ? sCr + '%' : '—'}</div>
+                    <div className="scope-val-label">Capture Rate</div>
                   </div>
                   <div className="scope-val-box">
                     <div className="scope-val-num" style={{ color: sPOTotal > 0 ? '#2D7A4F' : '#B0BEC5' }}>{sPOTotal > 0 ? cr(sPOTotal) : '—'}</div>
