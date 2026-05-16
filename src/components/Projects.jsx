@@ -107,7 +107,6 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
       {filtered.map(p => {
         const pot = projectCoatingsPotential(p.id, scopes)
         const opp = projectOpportunity(p.id, scopes)
-        const won = projectWonValue(p.id, scopes)
         const owner = team.find(u => u.id === p.kamOwnerId)
         return (
           <div key={p.id} className="project-card" onClick={() => onOpenProject(p.id)}>
