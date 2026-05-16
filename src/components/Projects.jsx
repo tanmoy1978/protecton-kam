@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { cr, fmt, initials, avatarColor, scopeOpportunity, projectCoatingsPotential, projectOpportunity, projectWonValue, captureRate, uid, STAGES, SPEC_STATUS, PATH_TYPES, SECTORS, PROJ_STATUS, REGIONS, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, fmt, initials, avatarColor, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, projectBestStage, captureRate, uid, STAGES, PATH_TYPES, SECTORS, PROJ_STATUS, REGIONS, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 import Modal from './Modal'
 
 export default function Projects({ data, currentUser, ops, canEdit, canDelete, visibleProjects, onOpenProject }) {
-  const { scopes, team, companies } = data
+  const { scopes, team, companies, scopeBuyers } = data
   const [modal, setModal] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStage, setFilterStage] = useState('All')
@@ -11,15 +11,19 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
   const activeP = visibleProjects.filter(p => p.status === 'Active')
   const totalPot = activeP.reduce((x, p) => x + projectCoatingsPotential(p.id, scopes), 0)
-  const wonProjects = activeP.filter(p => p.stage === 'Order Won')
-  const oppProjects = activeP.filter(p => !['Order Won','Order Lost','Cancelled'].includes(p.stage))
-  const totalOpp = oppProjects.reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
-  const totalWon = wonProjects.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
+  const totalOpp = activeP.reduce((x, p) => x + projectOpportunity(p.id, scopes), 0)
+  const totalWon = activeP.reduce((x, p) => x + projectWonValue(p.id, scopes), 0)
+  const totalPO = activeP.reduce((x, p) => x + projectPOTotal(p.id, scopes, scopeBuyers), 0)
 
+  const [filterStatus, setFilterStatus] = useState('Active')
   const filtered = visibleProjects.filter(p => {
     if (search && !p.name?.toLowerCase().includes(search.toLowerCase())) return false
-    if (filterStage !== 'All' && p.stage !== filterStage) return false
+    if (filterStatus !== 'All' && p.status !== filterStatus) return false
     if (filterRegion !== 'All' && p.region !== filterRegion) return false
+    if (filterStage !== 'All') {
+      const pScopes = scopes.filter(s => s.projectId === p.id)
+      if (!pScopes.some(s => s.stage === filterStage)) return false
+    }
     return true
   })
 
@@ -27,7 +31,6 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
     setModal({
       id: project?.id || null,
       name: project?.name || '',
-      stage: project?.stage || 'Project Identified',
       status: project?.status || 'Active',
       region: project?.region || '',
       sector: project?.sector || '',
@@ -53,7 +56,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* Stats — 2x2 grid + 5th card on mobile */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: 10, marginBottom: 16 }} className="stats-grid-5">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10, marginBottom: 16 }} className="stats-grid-5">
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length}</div>
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Projects</div>
@@ -79,14 +82,23 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Capture Rate</div>
           <div className="stat-sub" style={{ color: 'var(--blueD)' }}>Won ÷ Opp.</div>
         </div>
+        <div className="stat-card" style={{ background: '#B8E6CC' }}>
+          <div className="stat-val" style={{ color: '#2D7A4F' }}>{totalPO ? cr(totalPO) : '—'}</div>
+          <div className="stat-label" style={{ color: '#2D7A4F' }}>POs Received</div>
+          <div className="stat-sub" style={{ color: '#2D7A4F' }}>Actual purchase orders</div>
+        </div>
       </div>
 
       {/* Filters */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
         <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ flex: 1, minWidth: 120 }}>
-          <option value="All">All Stages</option>
+          <option value="All">All Scope Stages</option>
           {STAGES.map(s => <option key={s}>{s}</option>)}
+        </select>
+        <select className="inp" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ flex: 1, minWidth: 100 }}>
+          <option value="All">All Status</option>
+          {PROJ_STATUS.map(s => <option key={s}>{s}</option>)}
         </select>
         <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ flex: 1, minWidth: 100 }}>
           <option value="All">All Regions</option>
@@ -113,12 +125,18 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
               </div>}
             </div>
 
-            {/* Badges */}
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-              <span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666', fontSize: 10 }}>{p.stage}</span>
-              {p.specStatus && p.specStatus !== 'Not Specified' && <span style={{ fontSize: 10, color: 'var(--muted)', padding: '2px 6px', background: 'var(--bg)', borderRadius: 6 }}>{p.specStatus}</span>}
-              {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)', fontSize: 10 }}>{p.pathType}</span>}
-            </div>
+            {/* Badges — scope stages */}
+            {(() => {
+              const pScopes = scopes.filter(s => s.projectId === p.id)
+              const stageSet = [...new Set(pScopes.map(s => s.stage).filter(Boolean))]
+              const best = projectBestStage(p.id, scopes)
+              return (
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                  {best && <span className="badge" style={{ background: STAGE_COLORS[best] || '#eee', color: STAGE_TEXT[best] || '#666', fontSize: 10 }}>{best}{stageSet.length > 1 ? ` +${stageSet.length - 1} more` : ''}</span>}
+                  {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)', fontSize: 10 }}>{p.pathType}</span>}
+                </div>
+              )
+            })()}
 
             {/* Meta */}
             <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap', marginBottom: 10 }}>
@@ -132,7 +150,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
             </div>
 
             {/* Values row — full width, even spacing */}
-            {(pot > 0 || opp > 0 || p.stage === 'Order Won') && (
+            {(pot > 0 || opp > 0 || won > 0) && (
               <div style={{ display: 'flex', gap: 0, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
                 {pot > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div>
@@ -142,11 +160,11 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div>
                   <div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div>
                 </div>}
-                {p.stage === 'Order Won' && <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won) || '—'}</div>
+                {won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{cr(won)}</div>
                   <div style={{ fontSize: 10, color: 'var(--muted)' }}>Won</div>
                 </div>}
-                {p.stage === 'Order Won' && won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
+                {won > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--sageD)' }}>{captureRate(opp || pot, won)}%</div>
                   <div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div>
                 </div>}
@@ -164,19 +182,11 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
             <div className="field-label">Project Name</div>
             <input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} />
           </div>
-          <div className="field-row">
-            <div className="field-wrap">
-              <div className="field-label">Stage</div>
-              <select className="inp" value={modal.stage} onChange={e => setModal(m => ({ ...m, stage: e.target.value }))}>
-                {STAGES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap">
-              <div className="field-label">Status</div>
-              <select className="inp" value={modal.status} onChange={e => setModal(m => ({ ...m, status: e.target.value }))}>
-                {PROJ_STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
+          <div className="field-wrap">
+            <div className="field-label">Status</div>
+            <select className="inp" value={modal.status} onChange={e => setModal(m => ({ ...m, status: e.target.value }))}>
+              {PROJ_STATUS.map(s => <option key={s}>{s}</option>)}
+            </select>
           </div>
           <div className="field-row">
             <div className="field-wrap">
@@ -202,12 +212,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
                 {PATH_TYPES.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
-            <div className="field-wrap">
-              <div className="field-label">Spec Status</div>
-              <select className="inp" value={modal.specStatus} onChange={e => setModal(m => ({ ...m, specStatus: e.target.value }))}>
-                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
+
           </div>
           <div className="field-row">
             <div className="field-wrap">

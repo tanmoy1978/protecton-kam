@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, scopeExceedsCap, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
+import { cr, fmt, initials, avatarColor, uid, scopeOpportunity, scopeProtecton, scopeExceedsCap, scopeIsWon, projectCoatingsPotential, projectOpportunity, projectWonValue, projectPOTotal, captureRate, STAGES, SPEC_STATUS, SCOPE_TYPES, DATA_SOURCES, PROD_STATUS, QTY_UNITS, ACT_TYPES, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 import Modal from './Modal'
 
 export default function ProjectProfile({ data, currentUser, ops, canEdit, canDelete, projectId, onBack }) {
@@ -12,12 +12,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
 
   const pScopes = scopes.filter(s => s.projectId === projectId)
   const pActs = activities.filter(a => a.projectId === projectId).sort((a,b) => new Date(b.date)-new Date(a.date))
-  const isWon = p.stage === 'Order Won'
   const pot = projectCoatingsPotential(projectId, scopes)
   const opp = projectOpportunity(projectId, scopes)
   const won = projectWonValue(projectId, scopes)
   const poTotal = projectPOTotal(projectId, scopes, scopeBuyers)
-  const cr_ = isWon ? captureRate(opp || pot, won) : 0
+  const cr_ = won > 0 ? captureRate(opp || pot, won) : 0
 
   const companyName = id => companies.find(c => c.id === id)?.name || '—'
   const userName = id => team.find(u => u.id === id)?.name || '—'
@@ -35,6 +34,8 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
     _type: 'scope',
     id: sc?.id || null,
     name: sc?.name || sc?.type || '',
+    stage: sc?.stage || 'Project Identified',
+    specStatus: sc?.specStatus || '',
     type: sc?.type || '',
     dataSource: sc?.dataSource || '',
     scopeValue: sc?.scopeValue || '',
@@ -55,7 +56,9 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
       coatingsPotential: parseFloat(modal.coatingsPotential) || 0,
       
       scopeValue: parseFloat(modal.scopeValue) || 0,
-      qty: parseFloat(modal.qty) || null
+      qty: parseFloat(modal.qty) || null,
+      stage: modal.stage || 'Project Identified',
+      specStatus: modal.specStatus || null
     })
     setModal(null)
   }
@@ -121,8 +124,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         <div>
           <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>{p.name}</h2>
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <span className="badge" style={{ background: STAGE_COLORS[p.stage] || '#eee', color: STAGE_TEXT[p.stage] || '#666' }}>{p.stage}</span>
-            {p.specStatus && <span className="tag" style={{ background: 'var(--straw)', color: 'var(--strawD)' }}>{p.specStatus}</span>}
+            {p.status && p.status !== 'Active' && <span className="badge" style={{ background: 'var(--slate)', color: 'var(--slateD)' }}>{p.status}</span>}
             {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)' }}>{p.pathType}</span>}
             {p.kamOwnerId && <span className="tag" style={{ background: 'var(--blue)', color: 'var(--blueD)' }}>KAM: {userName(p.kamOwnerId)}</span>}
           </div>
@@ -142,17 +144,17 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
         <div className="stat-card" style={{ background: 'var(--lav)' }}>
           <div className="stat-val" style={{ color: 'var(--lavD)' }}>{cr(opp) || '—'}</div>
           <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opportunity</div>
-          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable by Protecton products</div>
+          <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Product values — active scopes</div>
         </div>
         <div className="stat-card" style={{ background: isWon ? 'var(--sage)' : 'var(--slate)' }}>
           <div className="stat-val" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr(won) || '—') : '—'}</div>
           <div className="stat-label" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>Orders Won</div>
-          <div className="stat-sub" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr_ + '% capture rate') : 'Available when order is won'}</div>
+          <div className="stat-sub" style={{ color: isWon ? 'var(--sageD)' : 'var(--slateD)' }}>{isWon ? (cr_ + '% capture rate') : 'All scopes, all stages'}</div>
         </div>
         <div className="stat-card" style={{ background: isWon ? '#B8E6CC' : 'var(--slate)' }}>
           <div className="stat-val" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (cr(poTotal) || '—') : '—'}</div>
           <div className="stat-label" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>POs Received</div>
-          <div className="stat-sub" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'Available when order is won'}</div>
+          <div className="stat-sub" style={{ color: isWon ? '#2D7A4F' : 'var(--slateD)' }}>{isWon ? (poTotal < won ? `${cr(won - poTotal)} pending` : 'Fully released') : 'All scopes, all stages'}</div>
         </div>
       </div>
 
@@ -168,7 +170,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <div style={{ fontSize: 13, color: 'var(--muted)' }}>
               {pScopes.length} scope{pScopes.length !== 1 ? 's' : ''} — Potential: <b>{cr(pot) || '—'}</b>
               {opp > 0 && <> — Opportunity: <b style={{ color: 'var(--lavD)' }}>{cr(opp)}</b></>}
-              {isWon && won > 0 && <> — Won: <b style={{ color: 'var(--sageD)' }}>{cr(won)}</b> — Capture: <b>{captureRate(opp || pot, won)}%</b></>}
+              {won > 0 && <> — Won: <b style={{ color: 'var(--sageD)' }}>{cr(won)}</b> — Capture: <b>{captureRate(opp || pot, won)}%</b></>}
               {poTotal > 0 && <> — POs: <b style={{ color: '#2D7A4F' }}>{cr(poTotal)}</b></>}
             </div>
             {canEdit && <button className="btn btn-primary" onClick={() => openScopeModal()}>+ Add Scope</button>}
@@ -180,7 +182,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             const sPot = sc.coatingsPotential || 0
             const sOpp = scopeOpportunity(sc)
             const sWon = scopeProtecton(sc)
-            const sCr = isWon ? captureRate(sOpp || sPot, sWon) : 0
+            const sCr = scopeIsWon(sc) ? captureRate(sOpp || sPot, sWon) : 0
             const sBuyers = scopeBuyers.filter(b => b.scopeId === sc.id)
             const sPOTotal = sBuyers.reduce((x, b) => (b.pos || []).reduce((y, po) => y + (parseFloat(po.value) || 0), 0) + x, 0)
 
@@ -193,7 +195,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                 )}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 13 }}>{sc.name || sc.type}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <span style={{ fontWeight: 700, fontSize: 13 }}>{sc.name || sc.type}</span>
+                      {sc.stage && <span className="badge" style={{ background: STAGE_COLORS[sc.stage] || '#eee', color: STAGE_TEXT[sc.stage] || '#666', fontSize: 10 }}>{sc.stage}</span>}
+                      {sc.specStatus && <span style={{ fontSize: 10, color: 'var(--strawD)', background: 'var(--straw)', padding: '2px 6px', borderRadius: 6 }}>{sc.specStatus}</span>}
+                    </div>
                     <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{sc.type}{sc.dataSource ? ' · ' + sc.dataSource : ''}</div>
                   </div>
                   {canEdit && <div style={{ display: 'flex', gap: 4 }}>
@@ -212,11 +218,11 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
                     <div className="scope-val-label">Protecton Opportunity</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: isWon ? 'var(--sageD)' : '#B0BEC5' }}>{isWon ? (cr(sWon) || '—') : '—'}</div>
+                    <div className="scope-val-num" style={{ color: scopeIsWon(sc) ? 'var(--sageD)' : '#B0BEC5' }}>{scopeIsWon(sc) ? (cr(sWon) || '—') : '—'}</div>
                     <div className="scope-val-label">Orders Won</div>
                   </div>
                   <div className="scope-val-box">
-                    <div className="scope-val-num" style={{ color: isWon ? '#2D7A4F' : '#B0BEC5' }}>{isWon ? (cr(sPOTotal) || '—') : '—'}</div>
+                    <div className="scope-val-num" style={{ color: sPOTotal > 0 ? '#2D7A4F' : '#B0BEC5' }}>{sPOTotal > 0 ? cr(sPOTotal) : '—'}</div>
                     <div className="scope-val-label">POs Received</div>
                   </div>
                 </div>
@@ -366,16 +372,7 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <input className="inp" value={modal.name} onChange={e => setModal(m => ({ ...m, name: e.target.value }))} />
           </div>
           <div className="field-row">
-            <div className="field-wrap"><div className="field-label">Stage</div>
-              <select className="inp" value={modal.stage} onChange={e => setModal(m => ({ ...m, stage: e.target.value }))}>
-                {STAGES.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
-            <div className="field-wrap"><div className="field-label">Spec Status</div>
-              <select className="inp" value={modal.specStatus} onChange={e => setModal(m => ({ ...m, specStatus: e.target.value }))}>
-                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-            </div>
+
           </div>
           <div className="field-row">
             <div className="field-wrap"><div className="field-label">Region</div>
@@ -454,6 +451,19 @@ export default function ProjectProfile({ data, currentUser, ops, canEdit, canDel
             <div className="field-wrap"><div className="field-label">Data Source</div>
               <select className="inp" value={modal.dataSource} onChange={e => setModal(m => ({ ...m, dataSource: e.target.value }))}>
                 <option value="">Select…</option>{DATA_SOURCES.map(d => <option key={d}>{d}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="field-row">
+            <div className="field-wrap"><div className="field-label">Stage</div>
+              <select className="inp" value={modal.stage} onChange={e => setModal(m => ({ ...m, stage: e.target.value }))}>
+                {STAGES.map(s => <option key={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="field-wrap"><div className="field-label">Spec Status</div>
+              <select className="inp" value={modal.specStatus} onChange={e => setModal(m => ({ ...m, specStatus: e.target.value }))}>
+                <option value="">Select…</option>
+                {SPEC_STATUS.map(s => <option key={s}>{s}</option>)}
               </select>
             </div>
           </div>

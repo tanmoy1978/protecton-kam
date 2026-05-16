@@ -64,10 +64,14 @@ export const initials = n => n ? n.split(' ').map(w => w[0]).join('').toUpperCas
 const AVATAR_COLORS = ['#4A7BBF','#4A8C6A','#C46A45','#7A5BAF','#B04A6A','#B89030','#4A5A6A']
 export const avatarColor = n => { let h = 0; for (let c of (n || '')) h = c.charCodeAt(0) + ((h << 5) - h); return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length] }
 
+// Scope-level stage helpers
+export const scopeIsWon = (s) => s.stage === 'Order Won'
+export const scopeIsLost = (s) => s.stage === 'Order Lost' || s.stage === 'Cancelled'
+
+// Product sum, capped at coatings potential
 export const scopeOpportunity = (s) => {
   const productSum = (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
   const cap = s.coatingsPotential || 0
-  // Always use product sum, capped at coatings potential if set
   return cap > 0 ? Math.min(productSum, cap) : productSum
 }
 export const scopeOpportunityRaw = (s) => (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
@@ -77,9 +81,40 @@ export const scopeExceedsCap = (s) => {
   return cap > 0 && productSum > cap
 }
 export const scopeProtecton = (s) => (s.products || []).reduce((x, p) => x + (p.valueL || 0), 0)
-export const scopePOTotal = (sid, scopeBuyers) => scopeBuyers.filter(b => b.scopeId === sid).reduce((x, b) => (b.pos || []).reduce((y, p) => y + (parseFloat(p.value) || 0), 0) + x, 0)
-export const projectCoatingsPotential = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + (s.coatingsPotential || 0), 0)
-export const projectOpportunity = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + scopeOpportunity(s), 0)
-export const projectWonValue = (pid, scopes) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + scopeProtecton(s), 0)
-export const projectPOTotal = (pid, scopes, scopeBuyers) => scopes.filter(s => s.projectId === pid).reduce((x, s) => x + scopePOTotal(s.id, scopeBuyers), 0)
+
+// PO total for a scope — ALL POs regardless of scope stage
+export const scopePOTotal = (sid, scopeBuyers) =>
+  scopeBuyers.filter(b => b.scopeId === sid)
+    .reduce((x, b) => (b.pos || []).reduce((y, p) => y + (parseFloat(p.value) || 0), 0) + x, 0)
+
+// Project aggregations — derived entirely from scope stages
+export const projectCoatingsPotential = (pid, scopes) =>
+  scopes.filter(s => s.projectId === pid).reduce((x, s) => x + (s.coatingsPotential || 0), 0)
+
+// Opportunity = scopes NOT lost/cancelled
+export const projectOpportunity = (pid, scopes) =>
+  scopes.filter(s => s.projectId === pid && !scopeIsLost(s))
+    .reduce((x, s) => x + scopeOpportunity(s), 0)
+
+// Orders Won = only Order Won scopes
+export const projectWonValue = (pid, scopes) =>
+  scopes.filter(s => s.projectId === pid && scopeIsWon(s))
+    .reduce((x, s) => x + scopeProtecton(s), 0)
+
+// POs received = ALL POs across ALL scopes regardless of stage
+export const projectPOTotal = (pid, scopes, scopeBuyers) =>
+  scopes.filter(s => s.projectId === pid)
+    .reduce((x, s) => x + scopePOTotal(s.id, scopeBuyers), 0)
+
+// Best/highest stage across all scopes for display
+export const projectBestStage = (pid, scopes) => {
+  const pScopes = scopes.filter(s => s.projectId === pid)
+  if (!pScopes.length) return null
+  const priority = ['Order Won','Negotiation','Proposal Submitted','Enquiry Received','Approved on Spec','Spec Influence','Project Identified','On Hold','Order Lost','Cancelled']
+  for (const stage of priority) {
+    if (pScopes.some(s => s.stage === stage)) return stage
+  }
+  return pScopes[0]?.stage || null
+}
+
 export const captureRate = (opp, won) => { if (!opp) return 0; return Math.min(100, Math.round(won / opp * 100)) }
