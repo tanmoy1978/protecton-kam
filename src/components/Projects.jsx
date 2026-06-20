@@ -55,8 +55,8 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* ── SUMMARY STATS ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
-        <div className="stat-card" style={{ background: 'var(--blue)', gridColumn: 'span 1' }}>
+      <div className="projects-stats-grid">
+        <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
             <div className="stat-val" style={{ color: 'var(--blueD)', fontSize: 32 }}>{activeP.length}</div>
             <div style={{ fontSize: 13, color: 'var(--blueD)', fontWeight: 600 }}>projects</div>
@@ -96,16 +96,16 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
       {/* ── FILTERS ── */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
-        <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 2, minWidth: 160 }} />
-        <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ flex: 1, minWidth: 130 }}>
+        <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: '2 1 160px', minWidth: 0 }} />
+        <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ flex: '1 1 130px', minWidth: 0 }}>
           <option value="All">All Stages</option>
           {STAGES.map(s => <option key={s}>{s}</option>)}
         </select>
-        <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ flex: 1, minWidth: 110 }}>
+        <select className="inp" value={filterRegion} onChange={e => setFilterRegion(e.target.value)} style={{ flex: '1 1 110px', minWidth: 0 }}>
           <option value="All">All Regions</option>
           {REGIONS.filter(r => r !== 'All').map(r => <option key={r}>{r}</option>)}
         </select>
-        <select className="inp" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ flex: 1, minWidth: 110 }}>
+        <select className="inp" value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={{ flex: '1 1 110px', minWidth: 0 }}>
           <option value="All">All Status</option>
           {PROJ_STATUS.map(s => <option key={s}>{s}</option>)}
         </select>
@@ -129,12 +129,12 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
           <div key={p.id} className="project-card" onClick={() => onOpenProject(p.id)}
             style={{ background: '#fff', borderRadius: 12, border: '1px solid var(--border)', padding: '14px 16px', marginBottom: 8, cursor: 'pointer' }}>
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div className="project-card-row">
               {/* Left: all text info */}
               <div style={{ flex: 1, minWidth: 0 }}>
                 {/* Name + actions */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                  <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', flex: 1, marginRight: 8 }}>{p.name}</div>
+                  <div style={{ fontWeight: 800, fontSize: 15, color: 'var(--text)', flex: 1, marginRight: 8, minWidth: 0, overflowWrap: 'break-word' }}>{p.name}</div>
                   {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
                     <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 8px' }} onClick={() => openModal(p)}>edit</button>
                     {canDelete && <button className="btn-ghost" style={{ fontSize: 12, padding: '4px 8px', color: 'var(--roseD)' }} onClick={() => { if (confirm('Delete project?')) ops.deleteProject(p.id) }}>del</button>}
@@ -153,9 +153,9 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
                 {/* Meta row */}
                 <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap', alignItems: 'center' }}>
-                  {epc && <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--blueD)', background: 'var(--blue)', padding: '1px 5px', borderRadius: 4 }}>EPC</span>
-                    {epc.name}
+                  {epc && <span style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--blueD)', background: 'var(--blue)', padding: '1px 5px', borderRadius: 4, flexShrink: 0 }}>EPC</span>
+                    <span style={{ overflowWrap: 'break-word' }}>{epc.name}</span>
                   </span>}
                   {owner && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <div className="avatar" style={{ width: 18, height: 18, fontSize: 8, background: avatarColor(owner.name) }}>{initials(owner.name)}</div>
@@ -167,7 +167,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
               {/* Right: value pills */}
               {(pot > 0 || opp > 0 || pPO > 0) && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
+                <div className="project-card-pills">
                   {pot > 0 && <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 15, fontWeight: 800, color: 'var(--strawD)', lineHeight: 1 }}>{cr(pot)}</div>
                     <div style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 500 }}>Potential</div>
