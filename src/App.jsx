@@ -12,7 +12,7 @@ import ActivityFeed from './components/ActivityFeed'
 import Funnel from './components/Funnel'
 import Reports from './components/Reports'
 import Team from './components/Team'
-import Stakeholders from './components/Stakeholders'
+import AIActivityLogger, { AIFloatingButton } from './components/AIActivityLogger'
 
 const VIEWS = ['projects','companies','pipeline','activity','funnel','reports','team']
 
@@ -28,6 +28,7 @@ export default function App() {
   const [currentCompanyId, setCurrentCompanyId] = useState(null)
   const [syncStatus, setSyncStatus] = useState('none') // none | syncing | ok | error
   const [syncMsg, setSyncMsg] = useState('Local')
+  const [aiOpen, setAiOpen] = useState(false)
   const unsubRef = useRef(null)
 
   // ── LOAD ──────────────────────────────────────────────────
@@ -36,11 +37,8 @@ export default function App() {
     try {
       const d = await loadAll()
       // Merge team from DB with defaults
-      const merged = DEFAULT_TEAM.map(dt => {
-        const ct = d.team.find(u => u.id === dt.id)
-        return ct ? { ...dt, ...ct } : dt
-      })
-      d.team.forEach(u => { if (!merged.find(x => x.id === u.id)) merged.push(u) })
+      // Use DB team directly — no hardcoded fallback for Project Tracker
+      const merged = d.team.length > 0 ? d.team : DEFAULT_TEAM
       setData({ ...d, team: merged })
       setSyncStatus('ok'); setSyncMsg('● Live')
       // Start realtime after initial load
@@ -240,7 +238,6 @@ export default function App() {
       case 'activity': return <ActivityFeed {...ctx} onOpenProject={setCurrentProjectId} />
       case 'funnel': return <Funnel {...ctx} />
       case 'reports': return <Reports {...ctx} />
-      case 'stakeholders': return <Stakeholders {...ctx} onOpenProject={setCurrentProjectId} />
       case 'team': return <Team {...ctx} canManageTeam={canManageTeam} />
       default: return <Projects {...ctx} onOpenProject={setCurrentProjectId} />
     }
@@ -261,6 +258,16 @@ export default function App() {
       <div className="body">
         {renderView()}
       </div>
+      <AIFloatingButton onClick={() => setAiOpen(true)} />
+      {aiOpen && (
+        <AIActivityLogger
+          data={data}
+          currentUser={currentUser}
+          ops={ops}
+          visibleProjects={visibleProjects}
+          onClose={() => setAiOpen(false)}
+        />
+      )}
     </div>
   )
 }
