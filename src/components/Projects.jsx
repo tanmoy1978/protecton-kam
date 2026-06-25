@@ -115,7 +115,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
             {/* Top row: name + edit/del */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
               <div style={{ fontWeight: 700, fontSize: 14, flex: 1, marginRight: 8 }}>{p.name}</div>
-              {canEdit {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>{canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}> <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+              {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                 <button className="btn-ghost" style={{ fontSize: 12, color: 'var(--lavD)' }} onClick={() => setBriefProject(p)}>✨ brief</button>
                 <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => openModal(p)}>edit</button>
                 {canDelete && <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => { if (confirm('Delete project?')) ops.deleteProject(p.id) }}>del</button>}
