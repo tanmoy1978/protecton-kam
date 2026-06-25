@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { exportPipelineSummary, exportKAMPerformance, exportSectorBreakdown } from './ExcelExporter'
 import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, poCaptureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
 export default function Reports({ data, visibleProjects, labels, sectors }) {
@@ -26,32 +25,7 @@ export default function Reports({ data, visibleProjects, labels, sectors }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ fontWeight: 800, fontSize: 16 }}>Reports</div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button
-            className="btn btn-outline"
-            style={{ fontSize: 12, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}
-            onClick={() => exportPipelineSummary({ data, visibleProjects })}
-          >
-            📥 Pipeline
-          </button>
-          <button
-            className="btn btn-outline"
-            style={{ fontSize: 12, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}
-            onClick={() => exportKAMPerformance({ data, visibleProjects })}
-          >
-            📥 KAM Report
-          </button>
-          <button
-            className="btn btn-outline"
-            style={{ fontSize: 12, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 6 }}
-            onClick={() => exportSectorBreakdown({ data, visibleProjects })}
-          >
-            📥 Sector Report
-          </button>
-        </div>
-      </div>
+      <div style={{ fontWeight: 800, fontSize: 16, marginBottom: 16 }}>Reports</div>
       <div className="tabs" style={{ marginBottom: 20 }}>
         {[['pipeline','Pipeline Summary'],['won','Won']].map(([id, label]) => (
           <button key={id} className={`tab ${tab === id ? 'active' : ''}`} onClick={() => setTab(id)}>{label}</button>
