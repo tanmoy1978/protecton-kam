@@ -12,18 +12,49 @@ export default function ProjectBriefModal({ project, scopes, scopeBuyers, activi
     setStep('generating')
     setError('')
     try {
+      // Trim payload to essentials only — prevents mobile timeout/freeze
+      const payload = {
+        project: {
+          id: project.id,
+          name: project.name,
+          sector: project.sector || '',
+          region: project.region || '',
+          status: project.status || 'Active',
+          pathType: project.pathType || '',
+          ownerId: project.ownerId || '',
+          epcId: project.epcId || '',
+          kamOwnerId: project.kamOwnerId || '',
+          expectedOrderDate: project.expectedOrderDate || '',
+          notes: project.notes || '',
+        },
+        scopes: scopes.map(s => ({
+          id: s.id,
+          name: s.name || s.type || '',
+          type: s.type || '',
+          stage: s.stage || '',
+          coatingsPotential: s.coatingsPotential || 0,
+          products: (s.products || []).map(p => ({ name: p.name, valueL: p.valueL, status: p.status })),
+        })),
+        scopeBuyers: (scopeBuyers || []).map(b => ({
+          scopeId: b.scopeId,
+          pos: (b.pos || []).map(po => ({ number: po.number, date: po.date, value: po.value })),
+        })),
+        activities: activities.slice(0, 8).map(a => ({
+          userId: a.userId,
+          contactId: a.contactId || '',
+          type: a.type,
+          date: a.date,
+          note: (a.note || '').slice(0, 200),
+        })),
+        contacts: contacts.map(c => ({ id: c.id, name: c.name, designation: c.designation || '', companyId: c.companyId })),
+        companies: companies.map(c => ({ id: c.id, name: c.name, type: c.type })),
+        team: team.map(u => ({ id: u.id, name: u.name, role: u.role })),
+      }
+
       const response = await fetch(AI_BRIEF_ENDPOINT, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          project,
-          scopes,
-          scopeBuyers,
-          activities,
-          contacts: contacts.map(c => ({ id: c.id, name: c.name, designation: c.designation, companyId: c.companyId })),
-          companies: companies.map(c => ({ id: c.id, name: c.name, type: c.type })),
-          team: team.map(u => ({ id: u.id, name: u.name, role: u.role })),
-        })
+        body: JSON.stringify(payload),
       })
       if (!response.ok) {
         const err = await response.json().catch(() => ({}))
@@ -33,7 +64,7 @@ export default function ProjectBriefModal({ project, scopes, scopeBuyers, activi
       setBrief(data.brief || '')
       setStep('done')
     } catch (err) {
-      setError('Failed to generate brief: ' + err.message)
+      setError('Failed: ' + err.message)
       setStep('error')
     }
   }
