@@ -57,27 +57,25 @@ ${scopeSummary || 'No scopes added yet'}
 RECENT ACTIVITIES (last 10):
 ${activitySummary || 'No activities logged'}
 
-Write the brief in this exact structure:
+Write a SHORT internal BD brief in this exact structure (keep each section to 2-3 lines max):
 
-## Project Overview
-2-3 sentences summarizing what this project is and its strategic importance to Berger Protecton.
+## Overview
+One sentence on what this project is and why it matters.
 
-## Commercial Summary
-Bullet points covering: Coatings Potential, Protecton Opportunity, current stage, expected order timeline.
+## Commercial
+- Coatings Potential, Protecton Opportunity, POs Received (use exact figures from data)
+- Current stage and expected order date
 
-## Scope Breakdown
-Brief description of each scope and where we stand.
+## Scopes
+One line per scope with stage and key value figures. If POs exist, state the PO amount explicitly.
 
-## Relationship & Engagement Status
-Summary of recent BD activities, key contacts engaged, relationship health.
+## Engagement
+One sentence on recent BD activity and relationship status.
 
-## Key Risks & Opportunities
-2-3 bullet points each.
+## Next Actions
+3 bullet points, specific and actionable.
 
-## Recommended Next Actions
-3 specific, actionable next steps for the KAM team.
-
-Keep the tone professional but concise. This is for internal BD review, not a client document.`
+Be concise. No padding. Internal use only.`
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -89,7 +87,7 @@ Keep the tone professional but concise. This is for internal BD review, not a cl
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
+        max_tokens: 800,
         messages: [{ role: 'user', content: prompt }]
       })
     })

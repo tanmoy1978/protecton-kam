@@ -58,7 +58,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* Stats — 2x2 grid + 5th card on mobile */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6,1fr)', gap: 10, marginBottom: 16 }} className="stats-grid-5">
+      <div className="stats-grid-5">
         <div className="stat-card" style={{ background: 'var(--blue)' }}>
           <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length}</div>
           <div className="stat-label" style={{ color: 'var(--blueD)' }}>Projects</div>
