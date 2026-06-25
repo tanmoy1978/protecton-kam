@@ -1,59 +1,27 @@
 import { useState } from 'react'
-import { uid, ACT_TYPES, fmt, initials, avatarColor } from '../lib/constants'
+import { uid, ACT_TYPES } from '../lib/constants'
 import Modal from './Modal'
 
-const ANTHROPIC_API = 'https://api.anthropic.com/v1/messages'
+const AI_ENDPOINT = '/.netlify/functions/ai-parse'
 
 // ── AI PARSER ─────────────────────────────────────────────────
-async function parseActivityWithAI(freeText, projects, contacts, products) {
-  const today = new Date().toISOString().slice(0, 10)
-  const projectList = projects.map(p => `${p.id}|||${p.name}`).join('\n')
-  const contactList = contacts.map(c => `${c.id}|||${c.name}|||${c.designation || ''}`).join('\n')
-
-  const prompt = `You are a BD assistant for Berger Protecton, a protective coatings company. 
-Extract structured activity data from this free-form note written by a sales person.
-
-TODAY'S DATE: ${today}
-
-AVAILABLE PROJECTS (id|||name):
-${projectList || 'None'}
-
-AVAILABLE CONTACTS (id|||name|||designation):
-${contactList || 'None'}
-
-ACTIVITY TYPES: ${ACT_TYPES.join(', ')}
-
-FREE-FORM NOTE:
-"${freeText}"
-
-Return ONLY a JSON object with these fields (no markdown, no explanation):
-{
-  "projectId": "<best matching project id from the list, or empty string>",
-  "contactId": "<best matching contact id from the list, or empty string>",
-  "type": "<best matching activity type from the list>",
-  "date": "<date in YYYY-MM-DD format, default to today if not mentioned>",
-  "note": "<cleaned professional summary of what happened>",
-  "nextAction": "<suggested next step based on the note, 1 sentence>",
-  "productsDetected": "<any Berger Protecton products mentioned, comma separated, or empty>",
-  "confidence": "<high|medium|low>"
-}`
-
-  const response = await fetch(ANTHROPIC_API, {
+async function parseActivityWithAI(freeText, projects, contacts) {
+  const response = await fetch(AI_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }]
+      freeText,
+      projects: projects.map(p => ({ id: p.id, name: p.name })),
+      contacts: contacts.map(c => ({ id: c.id, name: c.name, designation: c.designation || '' })),
     })
   })
-  const data = await response.json()
-  const text = data.content?.[0]?.text || '{}'
-  try {
-    return JSON.parse(text.replace(/```json|```/g, '').trim())
-  } catch {
-    return null
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err?.error || `Server error ${response.status}`)
   }
+
+  return response.json()
 }
 
 // ── FLOATING AI BUTTON ────────────────────────────────────────
@@ -94,9 +62,8 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
   const { contacts } = data
   const [step, setStep] = useState('input') // input | parsing | review | saving | done
   const [freeText, setFreeText] = useState('')
-  const [parsed, setParsed] = useState(null)
-  const [error, setError] = useState('')
   const [modal, setModal] = useState(null)
+  const [error, setError] = useState('')
 
   const handleParse = async () => {
     if (!freeText.trim()) return setError('Please describe what happened.')
@@ -104,7 +71,7 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
     setStep('parsing')
     try {
       const result = await parseActivityWithAI(freeText, visibleProjects, contacts)
-      if (!result) throw new Error('Could not parse response')
+      if (!result) throw new Error('Empty response from AI')
       setModal({
         projectId: result.projectId || '',
         contactId: result.contactId || '',
@@ -117,10 +84,9 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
         _productsDetected: result.productsDetected || '',
         _confidence: result.confidence || 'medium',
       })
-      setParsed(result)
       setStep('review')
     } catch (err) {
-      setError('AI parsing failed. Please try again.')
+      setError('AI parsing failed: ' + err.message)
       setStep('input')
     }
   }
@@ -130,7 +96,6 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
     if (!modal.note.trim()) return setError('Note is required.')
     setStep('saving')
     const { _nextAction, _productsDetected, _confidence, ...activityData } = modal
-    // Append next action to note if present
     const finalNote = _nextAction
       ? `${activityData.note}\n\n→ Next: ${_nextAction}`
       : activityData.note
@@ -160,7 +125,7 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
             <textarea
               className="inp"
               rows={5}
-              placeholder={`e.g. "Met Rajesh Nair at L&T ECC Powai today, discussed Berchar WB70 for the turbine hall scope. He's keen but wants a demo next month. Sent him the TDS by email."`}
+              placeholder={`e.g. "Met Rajesh at L&T Powai today, discussed Berchar WB70 for the turbine hall scope. He's keen but wants a demo next month."`}
               value={freeText}
               onChange={e => setFreeText(e.target.value)}
               disabled={step === 'parsing'}
@@ -173,7 +138,7 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
               className="btn btn-primary"
               onClick={handleParse}
               disabled={step === 'parsing'}
-              style={{ background: 'linear-gradient(135deg, #7A5BAF, #4A7BBF)', border: 'none', minWidth: 120 }}
+              style={{ background: 'linear-gradient(135deg, #7A5BAF, #4A7BBF)', border: 'none', minWidth: 140 }}
             >
               {step === 'parsing' ? '✨ Parsing…' : '✨ Parse with AI'}
             </button>
@@ -191,16 +156,14 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
       {/* STEP 2: REVIEW */}
       {step === 'review' && modal && (
         <div>
-          {/* Confidence badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, padding: '8px 12px', background: '#F8F9FF', borderRadius: 8, border: '1px solid #E8ECF8' }}>
             <span style={{ fontSize: 11, color: 'var(--muted)' }}>AI Confidence:</span>
-            <span style={{ fontSize: 11, fontWeight: 700, color: confidenceColor[parsed?._confidence || modal._confidence] }}>
-              {(parsed?._confidence || modal._confidence || 'medium').toUpperCase()}
+            <span style={{ fontSize: 11, fontWeight: 700, color: confidenceColor[modal._confidence] }}>
+              {modal._confidence.toUpperCase()}
             </span>
             <span style={{ fontSize: 11, color: 'var(--muted)', marginLeft: 'auto' }}>Review and edit before saving</span>
           </div>
 
-          {/* Detected products */}
           {modal._productsDetected && (
             <div style={{ marginBottom: 12, padding: '8px 12px', background: '#EEF8F2', borderRadius: 8, border: '1px solid #C8DDD1' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#2D7A4F' }}>Products detected: </span>
@@ -246,20 +209,19 @@ export default function AIActivityLogger({ data, currentUser, ops, visibleProjec
           {modal._nextAction && (
             <div className="field-wrap">
               <div className="field-label">Suggested Next Action</div>
-              <div style={{ padding: '10px 12px', background: '#FFF8EC', borderRadius: 8, border: '1px solid #F5EAC8', fontSize: 13, color: '#B89030', display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                <span>→</span>
+              <div style={{ padding: '8px 12px', background: '#FFF8EC', borderRadius: 8, border: '1px solid #F5EAC8', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ color: '#B89030' }}>→</span>
                 <input
                   className="inp"
                   value={modal._nextAction}
                   onChange={e => setModal(m => ({ ...m, _nextAction: e.target.value }))}
-                  style={{ background: 'transparent', border: 'none', padding: 0, fontSize: 13, color: '#B89030', fontWeight: 600 }}
+                  style={{ background: 'transparent', border: 'none', padding: 0, fontSize: 13, color: '#B89030', fontWeight: 600, flex: 1 }}
                 />
               </div>
             </div>
           )}
 
           {error && <div style={{ color: 'var(--roseD)', fontSize: 12, marginBottom: 10 }}>{error}</div>}
-
           <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
             <button
               className="btn btn-primary"
