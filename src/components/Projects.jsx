@@ -58,36 +58,36 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
   return (
     <div>
       {/* Stats — 2x2 grid + 5th card on mobile */}
-      <div className="stats-grid-5">
-        <div className="stat-card" style={{ background: 'var(--blue)' }}>
-          <div className="stat-val" style={{ color: 'var(--blueD)' }}>{activeP.length}</div>
-          <div className="stat-label" style={{ color: 'var(--blueD)' }}>Projects</div>
+      <div className="stats-grid-5" style={{ gap: 8, marginBottom: 12 }}>
+        <div className="stat-card" style={{ background: 'var(--blue)', padding: '10px 14px' }}>
+          <div className="stat-val" style={{ color: 'var(--blueD)', fontSize: 28, fontWeight: 900 }}>{activeP.length}</div>
+          <div className="stat-label" style={{ color: 'var(--blueD)', fontSize: 12, fontWeight: 800 }}>Projects</div>
           <div className="stat-sub" style={{ color: 'var(--blueD)' }}>{visibleProjects.length} total</div>
         </div>
-        <div className="stat-card" style={{ background: 'var(--straw)' }}>
-          <div className="stat-val" style={{ color: 'var(--strawD)' }}>{cr(totalPot)}</div>
+        <div className="stat-card" style={{ background: 'var(--straw)', padding: '10px 14px' }}>
+          <div className="stat-val" style={{ color: 'var(--strawD)', fontSize: 26, fontWeight: 900 }}>{cr(totalPot)}</div>
           <div className="stat-label" style={{ color: 'var(--strawD)' }}>Coatings Potential</div>
           <div className="stat-sub" style={{ color: 'var(--strawD)' }}>Total market</div>
         </div>
-        <div className="stat-card" style={{ background: 'var(--lav)' }}>
-          <div className="stat-val" style={{ color: 'var(--lavD)' }}>{totalOpp ? cr(totalOpp) : '—'}</div>
+        <div className="stat-card" style={{ background: 'var(--lav)', padding: '10px 14px' }}>
+          <div className="stat-val" style={{ color: 'var(--lavD)', fontSize: 26, fontWeight: 900 }}>{totalOpp ? cr(totalOpp) : '—'}</div>
           <div className="stat-label" style={{ color: 'var(--lavD)' }}>Protecton Opp.</div>
           <div className="stat-sub" style={{ color: 'var(--lavD)' }}>Addressable</div>
         </div>
-        <div className="stat-card" style={{ background: '#B8E6CC' }}>
-          <div className="stat-val" style={{ color: '#2D7A4F' }}>{totalPO ? cr(totalPO) : '—'}</div>
+        <div className="stat-card" style={{ background: '#B8E6CC', padding: '10px 14px' }}>
+          <div className="stat-val" style={{ color: '#2D7A4F', fontSize: 26, fontWeight: 900 }}>{totalPO ? cr(totalPO) : '—'}</div>
           <div className="stat-label" style={{ color: '#2D7A4F' }}>POs Received</div>
           <div className="stat-sub" style={{ color: '#2D7A4F' }}>Actual purchase orders</div>
         </div>
         <div className="stat-card" style={{ background: totalCR >= 60 ? 'var(--sage)' : totalCR >= 30 ? 'var(--straw)' : 'var(--rose)' }}>
-          <div className="stat-val" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>{totalPO && totalOpp ? totalCR + '%' : '—'}</div>
+          <div className="stat-val" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' , fontSize: 26, fontWeight: 900 }}>{totalPO && totalOpp ? totalCR + '%' : '—'}</div>
           <div className="stat-label" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>Capture Rate</div>
           <div className="stat-sub" style={{ color: totalCR >= 60 ? 'var(--sageD)' : totalCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>POs ÷ Protecton Opp.</div>
         </div>
       </div>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         <input className="inp" placeholder="Search projects…" value={search} onChange={e => setSearch(e.target.value)} style={{ flex: 1, minWidth: 140 }} />
         <select className="inp" value={filterStage} onChange={e => setFilterStage(e.target.value)} style={{ flex: 1, minWidth: 120 }}>
           <option value="All">All Scope Stages</option>
@@ -111,10 +111,10 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
         const opp = projectOpportunity(p.id, scopes)
         const owner = team.find(u => u.id === p.kamOwnerId)
         return (
-          <div key={p.id} className="project-card" onClick={() => onOpenProject(p.id)}>
+          <div key={p.id} className="project-card" style={{ padding: '12px 16px', marginBottom: 7 }} onClick={() => onOpenProject(p.id)}>
             {/* Top row: name + edit/del */}
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
-              <div style={{ fontWeight: 700, fontSize: 14, flex: 1, marginRight: 8 }}>{p.name}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, flex: 1, marginRight: 8 }}>{p.name}</div>
               {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                 <button className="btn-ghost" style={{ fontSize: 12, color: 'var(--lavD)' }} onClick={() => setBriefProject(p)}>✨ brief</button>
                 <button className="btn-ghost" style={{ fontSize: 12 }} onClick={() => openModal(p)}>edit</button>
