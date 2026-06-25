@@ -260,6 +260,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
         <ProjectBriefModal
           project={briefProject}
           scopes={data.scopes.filter(s => s.projectId === briefProject.id)}
+          scopeBuyers={data.scopeBuyers.filter(b => data.scopes.filter(s => s.projectId === briefProject.id).some(s => s.id === b.scopeId))}
           activities={data.activities.filter(a => a.projectId === briefProject.id)}
           contacts={data.contacts}
           companies={data.companies}

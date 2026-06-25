@@ -17,14 +17,17 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid request body' }) }
   }
 
-  const { project, scopes, activities, contacts, companies, team } = body
+  const { project, scopes, activities, contacts, companies, team, scopeBuyers = [] } = body
 
   const companyName = (id) => companies.find(c => c.id === id)?.name || '—'
   const userName = (id) => team.find(u => u.id === id)?.name || '—'
 
   const scopeSummary = scopes.map(s => {
     const products = (s.products || []).map(p => `${p.name} (Rs.${p.valueL}L, ${p.status})`).join(', ')
-    return `- ${s.name || s.type} | Stage: ${s.stage} | Potential: Rs.${s.coatingsPotential}L${products ? ` | Products: ${products}` : ''}`
+    const buyers = scopeBuyers.filter(b => b.scopeId === s.id)
+    const poLines = buyers.flatMap(b => (b.pos || []).map(po => `PO# ${po.number || 'N/A'} dated ${po.date || 'N/A'} for Rs.${po.value}L`))
+    const poTotal = buyers.reduce((x, b) => (b.pos || []).reduce((y, po) => y + (parseFloat(po.value) || 0), 0) + x, 0)
+    return `- ${s.name || s.type} | Stage: ${s.stage} | Potential: Rs.${s.coatingsPotential}L${products ? ` | Products: ${products}` : ''}${poTotal > 0 ? ` | POs Received: Rs.${poTotal}L (${poLines.join('; ')})` : ' | No POs received yet'}`
   }).join('\n')
 
   const activitySummary = activities.slice(0, 10).map(a => {

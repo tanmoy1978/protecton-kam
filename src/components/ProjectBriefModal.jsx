@@ -3,7 +3,7 @@ import Modal from './Modal'
 
 const AI_BRIEF_ENDPOINT = '/.netlify/functions/ai-brief'
 
-export default function ProjectBriefModal({ project, scopes, activities, contacts, companies, team, onClose }) {
+export default function ProjectBriefModal({ project, scopes, scopeBuyers, activities, contacts, companies, team, onClose }) {
   const [step, setStep] = useState('idle') // idle | generating | done | error
   const [brief, setBrief] = useState('')
   const [error, setError] = useState('')
@@ -18,6 +18,7 @@ export default function ProjectBriefModal({ project, scopes, activities, contact
         body: JSON.stringify({
           project,
           scopes,
+          scopeBuyers,
           activities,
           contacts: contacts.map(c => ({ id: c.id, name: c.name, designation: c.designation, companyId: c.companyId })),
           companies: companies.map(c => ({ id: c.id, name: c.name, type: c.type })),
