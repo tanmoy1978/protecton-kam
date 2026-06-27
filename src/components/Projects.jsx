@@ -111,9 +111,9 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
         const opp = projectOpportunity(p.id, scopes)
         const owner = team.find(u => u.id === p.kamOwnerId)
         return (
-          <div key={p.id} className="project-card" style={{ padding: '12px 16px', marginBottom: 7 }} onClick={() => onOpenProject(p.id)}>
+          <div key={p.id} className="project-card" style={{ padding: '10px 16px 12px', marginBottom: 6 }} onClick={() => onOpenProject(p.id)}>
             {/* Top row: name + edit/del */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 4 }}>
               <div style={{ fontWeight: 700, fontSize: 15, flex: 1, marginRight: 8 }}>{p.name}</div>
               {canEdit && <div onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                 <button className="btn-ghost" style={{ fontSize: 12, color: 'var(--lavD)' }} onClick={() => setBriefProject(p)}>✨ brief</button>
@@ -128,7 +128,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
               const stageSet = [...new Set(pScopes.map(s => s.stage).filter(Boolean))]
               const best = projectBestStage(p.id, scopes)
               return (
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 4 }}>
                   {best && <span className="badge" style={{ background: STAGE_COLORS[best] || '#eee', color: STAGE_TEXT[best] || '#666', fontSize: 10 }}>{best}{stageSet.length > 1 ? ` +${stageSet.length - 1} more` : ''}</span>}
                   {p.pathType && <span className="tag" style={{ background: p.pathType === 'Proactive' ? 'var(--lav)' : 'var(--peach)', color: p.pathType === 'Proactive' ? 'var(--lavD)' : 'var(--peachD)', fontSize: 10 }}>{p.pathType}</span>}
                 </div>
@@ -136,7 +136,7 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
             })()}
 
             {/* Meta */}
-            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap', marginBottom: 10 }}>
+            <div style={{ display: 'flex', gap: 12, fontSize: 12, color: 'var(--muted)', flexWrap: 'wrap', marginBottom: 6 }}>
               {p.sector && <span>{p.sector}</span>}
               {p.region && <span>{p.region}</span>}
               {p.epcId && <span>EPC: {companyName(p.epcId)}</span>}
@@ -148,26 +148,26 @@ export default function Projects({ data, currentUser, ops, canEdit, canDelete, v
 
             {/* Values row — full width, even spacing */}
             {(pot > 0 || opp > 0) && (
-              <div style={{ display: 'flex', gap: 0, borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-                {pot > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--strawD)' }}>{cr(pot)}</div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Potential</div>
+              <div style={{ display: 'flex', gap: 28, borderTop: '1px solid var(--border)', paddingTop: 7, paddingLeft: 0 }}>
+                {pot > 0 && <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--strawD)' }}>{cr(pot)}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Potential</div>
                 </div>}
-                {opp > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--lavD)' }}>{cr(opp)}</div>
-                  <div style={{ fontSize: 10, color: 'var(--muted)' }}>Opportunity</div>
+                {opp > 0 && <div style={{ textAlign: 'left' }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: 'var(--lavD)' }}>{cr(opp)}</div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opportunity</div>
                 </div>}
                 {(() => {
                   const pPO = projectPOTotal(p.id, scopes, scopeBuyers)
                   const pCR = poCaptureRate(opp, pPO)
                   return (<>
-                    {pPO > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#2D7A4F' }}>{cr(pPO)}</div>
-                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>POs</div>
+                    {pPO > 0 && <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: '#2D7A4F' }}>{cr(pPO)}</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>POs</div>
                     </div>}
-                    {pPO > 0 && opp > 0 && <div style={{ flex: 1, textAlign: 'center' }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: pCR >= 60 ? 'var(--sageD)' : pCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>{pCR}%</div>
-                      <div style={{ fontSize: 10, color: 'var(--muted)' }}>Capture</div>
+                    {pPO > 0 && opp > 0 && <div style={{ textAlign: 'left' }}>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: pCR >= 60 ? 'var(--sageD)' : pCR >= 30 ? 'var(--strawD)' : 'var(--roseD)' }}>{pCR}%</div>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Capture</div>
                     </div>}
                   </>)
                 })()}
