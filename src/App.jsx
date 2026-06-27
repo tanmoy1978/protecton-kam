@@ -12,7 +12,7 @@ import ActivityFeed from './components/ActivityFeed'
 import Funnel from './components/Funnel'
 import Reports from './components/Reports'
 import Team from './components/Team'
-import AIActivityLogger, { AIFloatingButton } from './components/AIActivityLogger'
+import Stakeholders from './components/Stakeholders'
 
 const VIEWS = ['projects','companies','pipeline','activity','funnel','reports','team']
 
@@ -28,7 +28,6 @@ export default function App() {
   const [currentCompanyId, setCurrentCompanyId] = useState(null)
   const [syncStatus, setSyncStatus] = useState('none') // none | syncing | ok | error
   const [syncMsg, setSyncMsg] = useState('Local')
-  const [aiOpen, setAiOpen] = useState(false)
   const unsubRef = useRef(null)
 
   // ── LOAD ──────────────────────────────────────────────────
@@ -238,6 +237,7 @@ export default function App() {
       case 'activity': return <ActivityFeed {...ctx} onOpenProject={setCurrentProjectId} />
       case 'funnel': return <Funnel {...ctx} />
       case 'reports': return <Reports {...ctx} />
+      case 'stakeholders': return <Stakeholders {...ctx} onOpenProject={setCurrentProjectId} />
       case 'team': return <Team {...ctx} canManageTeam={canManageTeam} />
       default: return <Projects {...ctx} onOpenProject={setCurrentProjectId} />
     }
@@ -258,16 +258,6 @@ export default function App() {
       <div className="body">
         {renderView()}
       </div>
-      <AIFloatingButton onClick={() => setAiOpen(true)} />
-      {aiOpen && (
-        <AIActivityLogger
-          data={data}
-          currentUser={currentUser}
-          ops={ops}
-          visibleProjects={visibleProjects}
-          onClose={() => setAiOpen(false)}
-        />
-      )}
     </div>
   )
 }
