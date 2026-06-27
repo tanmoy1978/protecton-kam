@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { cr, projectCoatingsPotential, projectOpportunity, projectPOTotal, projectBestStage, poCaptureRate, STAGE_COLORS, STAGE_TEXT } from '../lib/constants'
 
-export default function Reports({ data, visibleProjects, labels, sectors }) {
+export default function Reports({ data, visibleProjects, labels = {}, sectors = [] }) {
   const { scopes, scopeBuyers, team, companies } = data
   const [tab, setTab] = useState('pipeline')
   const [filterRegion, setFilterRegion] = useState('All')
@@ -9,7 +9,7 @@ export default function Reports({ data, visibleProjects, labels, sectors }) {
   const [filterSector, setFilterSector] = useState('All')
 
   const companyName = id => companies.find(c => c.id === id)?.name || '—'
-  const kamList = team.filter(u => u.role === 'Admin' || u.role === 'Manager')
+  const kamList = (team || []).filter(u => u.role === 'Admin' || u.role === 'Manager')
 
   const fp = visibleProjects.filter(p => {
     if (filterRegion !== 'All' && p.region !== filterRegion) return false
