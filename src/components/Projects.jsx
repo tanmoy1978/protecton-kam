@@ -3,7 +3,7 @@ import { cr, initials, avatarColor, projectCoatingsPotential, projectOpportunity
 import Modal from './Modal'
 import ProjectBriefModal from './ProjectBriefModal'
 
-export default function Projects({ data, currentUser, ops, canEdit, canDelete, visibleProjects, onOpenProject }) {
+export default function Projects({ data, currentUser, ops, canEdit, canDelete, visibleProjects, onOpenProject, labels = {}, sectors = [] }) {
   const { scopes, team, companies, scopeBuyers } = data
   const [modal, setModal] = useState(null)
   const [briefProject, setBriefProject] = useState(null)
